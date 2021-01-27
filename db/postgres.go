@@ -61,8 +61,8 @@ type Message struct {
 }
 
 type UpdateRow struct {
-	ChatId       int64
 	MessageId    int64
+	ChatId       int64
 	NewChatTitle string
 	NewContent   string
 	NewViews     int32
@@ -88,7 +88,7 @@ func ConnectToPostgres() (*PostgresClient, error) {
 		return nil, err
 	}
 
-	res, err := db.Exec(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer );`)
+	res, err := db.Exec(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`)
 	if err != nil {
 		panic(err)
 	}
@@ -105,7 +105,8 @@ func (pg *PostgresClient) Close() {
 
 // Insert inserts data to the table
 func (pg *PostgresClient) Insert(m *Message) error {
-	sqlStatement := `INSERT INTO tg_parser (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	sqlStatement := `INSERT INTO tg_parser (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+
 	_, err := pg.Connection.Exec(sqlStatement, m.MessageID, m.ChatID, m.ChatTitle, m.Content, m.Date, m.Views, m.Forwards, m.Replies)
 	if err != nil {
 		return err
@@ -155,12 +156,15 @@ func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Messag
 	return m, err
 }
 
-// Update updates statistics and content of the message
-func (pg *PostgresClient) Update(u *UpdateRow) error {
-	updateString := fmt.Sprintf(`UPDATE %v SET chat_title = %v, content = %v , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v ;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
+// Update updates statistics and content of the message.
+func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
+	//UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
+	updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
 
-	_, err := pg.Connection.Exec(updateString)
-	return err
+	result, err := pg.Connection.Exec(updateString)
+	updateCount, _ = result.RowsAffected()
+
+	return updateCount, err
 }
 
 // GetMessagesForATimePeriod returns messages for the selected time period.
