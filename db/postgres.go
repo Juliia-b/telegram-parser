@@ -167,6 +167,7 @@ func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 	return updateCount, err
 }
 
+// TODO изменить => период (последние сутки) = время от 12.01 AM по time.Now()
 // GetMessagesForATimePeriod returns messages for the selected time period.
 // The list of time intervals is in the structure TimePeriods in PostgresClient
 func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, error) {
@@ -230,13 +231,7 @@ func getTimePeriods() *TimePeriods {
 }
 
 // NewMessage returns a structure compatible with the database schema
-func NewMessage(message *tdlib.Message, chat *tdlib.Chat) (*Message, error) {
-	contentType := message.Content.GetMessageContentEnum()
-
-	if contentType != "messageText" {
-		return nil, errors.New(fmt.Sprintf("The message type %s is not supported.", contentType))
-	}
-
+func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
 	m := &Message{
 		MessageID: message.ID,
 		ChatID:    message.ChatID,
@@ -253,7 +248,7 @@ func NewMessage(message *tdlib.Message, chat *tdlib.Chat) (*Message, error) {
 		}
 	}
 
-	return m, nil
+	return m
 }
 
 // scan scans row data into *Message

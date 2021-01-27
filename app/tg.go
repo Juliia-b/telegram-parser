@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Arman92/go-tdlib"
+	"github.com/sirupsen/logrus"
 	"os"
 	"telegram-parser/db"
 )
@@ -12,14 +13,10 @@ import (
 //                                    STRUCTS
 //    --------------------------------------------------------------------------------
 
+// TODO change chan to rabbitmq
 type Telegram struct {
-	Client  *tdlib.Client
-	Updates chan *Update   // TODO change chan to rabbitmq
-}
-
-type Update struct {
-	Message *tdlib.Message
-	Chat    *tdlib.Chat
+	Client          *tdlib.Client    // Telegram.org client
+	ReceivedUpdates chan *db.Message // Contains messages for further processing (distribution by nodes to track statistics)
 }
 
 //    --------------------------------------------------------------------------------
@@ -29,8 +26,8 @@ type Update struct {
 // NewTgClient Create new instance of client
 func NewTgClient() *Telegram {
 	client := tdlib.NewClient(tdlib.Config{
-		APIID:              os.Getenv("TGAPIID"),   //"2710151",
-		APIHash:            os.Getenv("TGAPIHASH"), //"fdb07dc50cbf3d511a24c9d038adb14a",
+		APIID:              os.Getenv("TGAPIID"),
+		APIHash:            os.Getenv("TGAPIHASH"),
 		SystemLanguageCode: "en",
 		DeviceModel:        "Server",
 		SystemVersion:      "1.0.0",
@@ -46,9 +43,9 @@ func NewTgClient() *Telegram {
 		EnableStorageOptimizer: false,
 		IgnoreFileNames:        false,
 	})
-	updates := make(chan *Update, 1000)
+	updates := make(chan *db.Message, 1000)
 
-	return &Telegram{Client: client, Updates: updates}
+	return &Telegram{Client: client, ReceivedUpdates: updates}
 }
 
 // Authorization is used to authorize the user
@@ -84,6 +81,16 @@ func (t *Telegram) Authorization() {
 	}
 }
 
+func (t *Telegram) RunHandlingUpdates() {
+	postgresClient, err := db.ConnectToPostgres()
+	if err != nil {
+		//	TODO что делать с ошибкой (без базы невозможно парсить сообщения)
+		panic(err)
+	}
+	go t.MessagesHandling(postgresClient)
+	go t.GetUpdates()
+}
+
 // GetUpdates catches records only about new unread messages in channels
 func (t *Telegram) GetUpdates() {
 	// rawUpdates gets all updates comming from tdlib
@@ -94,7 +101,7 @@ func (t *Telegram) GetUpdates() {
 		err := json.Unmarshal(update.Raw, &updateLastMessage)
 		if err != nil {
 			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
-			panic(err)
+			logrus.Panic(err)
 		}
 
 		if updateLastMessage.Type != "updateChatLastMessage" {
@@ -104,50 +111,35 @@ func (t *Telegram) GetUpdates() {
 		chat, err := t.Client.GetChat(updateLastMessage.ChatID)
 		if err != nil {
 			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
-			panic(err)
+			logrus.Panic(err)
 		}
 
-		u := &Update{Message: updateLastMessage.LastMessage, Chat: chat}
-
-		// TODO убрать сообщения не из супер групп
-
-		t.Updates <- u
-	}
-}
-
-func (t *Telegram) MessagesHandling(dbclient db.DB) {
-	for update := range t.Updates {
-
-		fmt.Println("Вызов NewMessage")
-
-		m, err := db.NewMessage(update.Message, update.Chat)
-		if err != nil {
-			fmt.Printf("ERROR NEWMESSAGE: %#v \n", err)
+		if chat.Type.GetChatTypeEnum() != "chatTypeSupergroup" {
 			continue
 		}
 
-		fmt.Println("Вызов Insert")
-
-		err = dbclient.Insert(m)
-		if err != nil {
-			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
-			panic(err)
+		if updateLastMessage.LastMessage.Content.GetMessageContentEnum() != "messageText" {
+			continue
 		}
 
-		fmt.Println("Insert done")
+		m := db.NewMessage(updateLastMessage.LastMessage, chat)
 
-		//	TODO сообщение отправляется в сервис (с помощью консистентного хеширования) для дальнейшего наблюдения
+		t.ReceivedUpdates <- m
 	}
 }
 
-func (t *Telegram) RunHandlingUpdates() {
-	postgresClient, err := db.ConnectToPostgres()
-	if err != nil {
-		//	TODO что делать с ошибкой (без базы невозможно парсить сообщения)
-		panic(err)
+func (t *Telegram) MessagesHandling(dbClient db.DB) {
+	for update := range t.ReceivedUpdates {
+		// Add a new message to the database
+		err := dbClient.Insert(update)
+		if err != nil {
+			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
+			logrus.Panic(err)
+		}
+
+		//	TODO сообщение отправляется в сервис (с помощью консистентного хеширования) для дальнейшего наблюдения
+
 	}
-	go t.MessagesHandling(postgresClient)
-	go t.GetUpdates()
 }
 
 // TODO updateLastMessage.LastMessage - положить в базу и направить на дальнейшую обработку
