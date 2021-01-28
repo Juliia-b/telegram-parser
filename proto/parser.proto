@@ -1,0 +1,31 @@
+syntax = "proto3";
+package proto;
+
+service Parser {
+  rpc Ping(PingRequest) returns (PingResponse) {}
+  rpc NewTrackedMsg(NewTrackedMsgRequest) returns (NewTrackedMsgResponse) {}
+}
+
+message PingRequest {
+  string Msg = 1;
+}
+
+message PingResponse {
+  string Msg = 1;
+}
+
+message NewTrackedMsgRequest {
+  int64 MessageID = 1;
+  int64 ChatId = 2;
+  string ChatTitle = 3;
+  string Content = 4;
+  int32 Date = 5;
+  int32 Views = 6;
+  int32 Forwards = 7;
+  int32 Replies = 8;
+}
+
+
+message NewTrackedMsgResponse {
+  bool received = 1;
+}
