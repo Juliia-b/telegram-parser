@@ -1,20 +1,70 @@
 package main
 
 import (
+	"github.com/Arman92/go-tdlib"
 	"github.com/banzaicloud/logrus-runtime-formatter"
 	"github.com/sirupsen/logrus"
 	"os"
+	"telegram-parser/app"
+	"telegram-parser/db"
+	"telegram-parser/flags"
+	"telegram-parser/grpc_client"
+	"telegram-parser/handling"
+	"telegram-parser/mq"
 )
 
 func main() {
-
+	// System Setup
+	checkENV()
 	configureLogrus()
 
-	// ----------------------------
-	//checkENV()
-	//configureLogrus()
+	// инициализация канала для новых адресов нод
+	serviceAddresses := make(chan string)
+	// инициализация структуры подключения к клиентам сервиса парсинга
+	serviceConnections := grpc_client.NewParserConnections()
+
+	// база
+	postgresClient, err := db.ConnectToPostgres()
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	// очередь сообщений
+	mq, err := mq.RabbitInit()
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	// структура общего назначения с доступом к базе, брокеру сообщений, подключения к клиентам сервиса и информации о состоянии консистентного хеша
+	handle := handling.NewHandleStruct(postgresClient, mq, serviceConnections)
+
+	// пытается подключиться ко всем адресам в списке
+	go handle.HandleNewServiceAddresses(serviceAddresses)
+	// парсит флаги. в случае если аргумент является ipv4 адресом он отправляется в канал serviceAddresses
+	flags.ParseFlags(serviceAddresses)
+
+	// запуск консьюмера очереди для получения сообщений и их обработки ( нахождение адреса ноды для отправки, отправка)
+	go handle.HandleMsgsFromMQ()
+
+	tdlib.SetLogVerbosityLevel(1)
+	tdlib.SetFilePath("./errors.txt")
+
+	telegramCli := app.NewTgClient()
+	telegramCli.Authorization()
+
+	go telegramCli.GetUpdates(handle.Rabbit)
+
+	// ----------------------------------------
 	//
-	//flags.ParseFlags()
+	//
+	//
+	//
+	//
+	//
+	//conf := flags.ParseFlags()
+	//
+	//parserConn := grpc_client.NewParserConnections()
+	//parserConn.ParserClientsInit(conf.ParserAddrs)
 
 	//tdlib.SetLogVerbosityLevel(1)
 	//tdlib.SetFilePath("./errors.txt")
@@ -23,13 +73,11 @@ func main() {
 	//telegram.Authorization()
 	//
 	//telegram.RunHandlingUpdates()
-	//
-	//cli, _ := db.ConnectToPostgres()
-	////cli.GetAllData()
-	//cli.GetMessageById(-1001129804770, 408447614976)
 
-	for {
-	}
+	//app.RedBlackTree()
+
+	forever := make(chan bool)
+	<-forever
 }
 
 func checkENV() {
