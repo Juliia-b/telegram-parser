@@ -22,15 +22,15 @@ type Rabbit struct {
 //    --------------------------------------------------------------------------------
 
 // RabbitInit returns a message broker instance with the required queue connections
-func RabbitInit() *Rabbit {
+func RabbitInit() (*Rabbit, error) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
-		logrus.Fatal(err)
+		return nil, err
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		logrus.Fatal(err)
+		return nil, err
 	}
 
 	q, err := ch.QueueDeclare(
@@ -42,7 +42,7 @@ func RabbitInit() *Rabbit {
 		nil,       // arguments
 	)
 	if err != nil {
-		logrus.Fatal(err)
+		return nil, err
 	}
 
 	rabbit := &Rabbit{
@@ -51,7 +51,7 @@ func RabbitInit() *Rabbit {
 		UpdatesQueue: q,
 	}
 
-	return rabbit
+	return rabbit, nil
 }
 
 func (r *Rabbit) CloseConn() {
