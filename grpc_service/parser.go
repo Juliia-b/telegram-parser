@@ -12,13 +12,15 @@ import (
 func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 3000))
 	if err != nil {
-		logrus.Fatalf("failed to listen: %v", err)
+		logrus.Fatal(err)
 	}
 
 	s := Server{}
 	grpcServer := grpc.NewServer()
 
 	proto.RegisterParserServer(grpcServer, &s)
+
+	logrus.Info("Service is running")
 
 	if err := grpcServer.Serve(lis); err != nil {
 		logrus.Fatalf("failed to serve: %s", err)
