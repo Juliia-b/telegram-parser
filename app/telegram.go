@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"telegram-parser/db"
+	"telegram-parser/mq"
 )
 
 //    --------------------------------------------------------------------------------
@@ -15,8 +16,7 @@ import (
 
 // TODO change chan to rabbitmq
 type Telegram struct {
-	Client          *tdlib.Client    // Telegram.org client
-	ReceivedUpdates chan *db.Message // Contains messages for further processing (distribution by nodes to track statistics)
+	Client *tdlib.Client // Telegram.org client
 }
 
 //    --------------------------------------------------------------------------------
@@ -43,9 +43,8 @@ func NewTgClient() *Telegram {
 		EnableStorageOptimizer: false,
 		IgnoreFileNames:        false,
 	})
-	updates := make(chan *db.Message, 1000)
 
-	return &Telegram{Client: client, ReceivedUpdates: updates}
+	return &Telegram{Client: client}
 }
 
 // Authorization is used to authorize the user
@@ -75,32 +74,49 @@ func (t *Telegram) Authorization() {
 				fmt.Printf("Error sending auth password: %v", err)
 			}
 		case tdlib.AuthorizationStateReadyType:
-			fmt.Println("Authorization Ready.\n")
+			logrus.Info("Authorization Ready.\n")
 			return
 		}
 	}
 }
 
-func (t *Telegram) RunHandlingUpdates() {
-	postgresClient, err := db.ConnectToPostgres()
-	if err != nil {
-		//	TODO что делать с ошибкой (без базы невозможно парсить сообщения)
-		panic(err)
-	}
-	go t.MessagesHandling(postgresClient)
-	go t.GetUpdates()
-}
+// DEPRECATE
+//func (t *Telegram) RunHandlingUpdates(rabbit *mq.Rabbit) {
+//	//go t.MessagesHandling(postgresClient, rabbit)
+//	go t.GetUpdates(rabbit)
+//}
 
 // GetUpdates catches records only about new unread messages in channels
-func (t *Telegram) GetUpdates() {
+func (t *Telegram) GetUpdates(rabbit *mq.Rabbit) {
+	// создаем файл для записи тестовых данных
+	logrus.Info("RUN GETTING UPDATES telegram.go")
+	file, err := os.Create("tests_data.txt")
+
+	if err != nil {
+		fmt.Println("Unable to create file:", err)
+		os.Exit(1)
+	}
+
+	defer file.Close()
+
 	// rawUpdates gets all updates comming from tdlib
 	rawUpdates := t.Client.GetRawUpdatesChannel(100)
 	for update := range rawUpdates {
 
-		var updateLastMessage tdlib.UpdateChatLastMessage
-		err := json.Unmarshal(update.Raw, &updateLastMessage)
+		logrus.Info("Получено обновление от телеграмма")
+
+		out, err := json.Marshal(update)
 		if err != nil {
-			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
+			panic(err)
+		}
+
+		file.WriteString(string(out) + "\n\n")
+
+		logrus.Info("Обновления записаны в тестовый текстовый файл")
+
+		var updateLastMessage tdlib.UpdateChatLastMessage
+		err = json.Unmarshal(update.Raw, &updateLastMessage)
+		if err != nil {
 			logrus.Panic(err)
 		}
 
@@ -108,9 +124,10 @@ func (t *Telegram) GetUpdates() {
 			continue
 		}
 
+		logrus.Info("получает информацию о чате")
+
 		chat, err := t.Client.GetChat(updateLastMessage.ChatID)
 		if err != nil {
-			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
 			logrus.Panic(err)
 		}
 
@@ -124,25 +141,36 @@ func (t *Telegram) GetUpdates() {
 
 		m := db.NewMessage(updateLastMessage.LastMessage, chat)
 
-		t.ReceivedUpdates <- m
-	}
-}
-
-func (t *Telegram) MessagesHandling(dbClient db.DB) {
-	for update := range t.ReceivedUpdates {
-		// Add a new message to the database
-		err := dbClient.Insert(update)
+		err = rabbit.Publish(m)
 		if err != nil {
-			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
 			logrus.Panic(err)
 		}
 
-		//	TODO сообщение отправляется в сервис (с помощью консистентного хеширования) для дальнейшего наблюдения
-
+		//logrus.Infof("SEND MESSAGE TO RABBIT: :#v\n", m)
 	}
 }
 
-// TODO updateLastMessage.LastMessage - положить в базу и направить на дальнейшую обработку
+//func (t *Telegram) MessagesHandling(dbClient db.DB, rabbit *mq.Rabbit) {
+//	updates := rabbit.Consume()
+//
+//	for update := range updates {
+//		msg := mq.UnmarshalRabbitBody(update.Body)
+//
+//		logrus.Infof("RECIEVED NEW MESSAGE FROM RABBIT: %#v \n\n", msg)
+//
+//		err := dbClient.Insert(msg)
+//		if err != nil {
+//			//	TODO придумать что делать с этой ошибкой (можем потерять сообщения)
+//			logrus.Panic(err)
+//		}
+//
+//		//	TODO сообщение отправляется в сервис (с помощью консистентного хеширования) для дальнейшего наблюдения
+//
+//		//	1. Вычисляем уникальное имя сообщения =>  "chatId:messageId"
+//		//	2. Вычисляем номер ноды
+//		//	3. Отправляем
+//	}
+//}
 
 //    --------------------------------------------------------------------------------
 //                                        EXTRA
