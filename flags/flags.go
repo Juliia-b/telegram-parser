@@ -7,31 +7,23 @@ import (
 	"strings"
 )
 
-type Config struct {
-	ParserAddrs []string // Addresses of parser services
-}
-
-func ParseFlags() *Config {
-	config := &Config{}
-
+// ParseFlags parses args and checks if the values is an ipv4 address
+func ParseFlags(addresses chan string) {
 	flag.Parse()
 	nodes := flag.Args()
 
 	for _, node := range nodes {
 		valid := isValidNodeAddress(node)
 		if !valid {
-			logrus.Errorf("Service address %v is not valid\n", node)
+			logrus.Errorf("The value `%v` passed in the arguments is not an address\n", node)
 			continue
 		}
 
-		config.ParserAddrs = append(config.ParserAddrs, node)
+		addresses <- node
 	}
-
-	logrus.Infof("Service addresses: %#v\n", config.ParserAddrs)
-
-	return config
 }
 
+// isValidNodeAddress checks if value is an ipv4 address
 func isValidNodeAddress(hostport string) bool {
 	spl := strings.Split(hostport, ":")
 	if len(spl) != 2 {
