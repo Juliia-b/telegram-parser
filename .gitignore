@@ -4,3 +4,4 @@ tdlib-files
 .idea
 errors.txt
 logfile.log
+tests_data.txt
