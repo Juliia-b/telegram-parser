@@ -44,9 +44,6 @@ type TimePeriods struct {
 	ThisWeek           string
 	LastWeek           string
 	ThisMonth          string
-	LastMonth          string
-	ThisYear           string
-	LastYear           string
 }
 
 type Message struct {
@@ -90,10 +87,13 @@ func ConnectToPostgres() (*PostgresClient, error) {
 
 	res, err := db.Exec(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	fmt.Printf("RES %#v \n\n", res)
+	// count can be 0 if table already EXISTS, else count 1
+	if count, _ := res.RowsAffected(); count > 1 {
+		return nil, errors.New("table creation error")
+	}
 
 	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", "tg_parser"}, SchemaInfo: getSchemaInfo(), TimePeriods: getTimePeriods()}, nil
 }
@@ -224,9 +224,6 @@ func getTimePeriods() *TimePeriods {
 		ThisWeek:           "thisweek",
 		LastWeek:           "lastweek",
 		ThisMonth:          "thismonth",
-		LastMonth:          "lastmonth",
-		ThisYear:           "thisyear",
-		LastYear:           "lastyear",
 	}
 }
 
@@ -287,15 +284,6 @@ func dateCalculation(pg *PostgresClient, period string) (from int64, to int64, e
 	case p.ThisMonth:
 		from = time.Now().AddDate(0, -1, 0).Unix()
 		to = time.Now().Unix()
-	case p.LastMonth:
-		from = time.Now().AddDate(0, -2, 0).Unix()
-		to = time.Now().AddDate(0, -1, 0).Unix()
-	case p.ThisYear:
-		from = time.Now().AddDate(-1, 0, 0).Unix()
-		to = time.Now().Unix()
-	case p.LastYear:
-		from = time.Now().AddDate(-2, 0, 0).Unix()
-		to = time.Now().AddDate(-1, 0, 0).Unix()
 	default:
 		err = errors.New(fmt.Sprintf("unknown time period %v", period))
 	}
