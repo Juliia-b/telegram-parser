@@ -80,21 +80,14 @@ func (t *Telegram) Authorization() {
 	}
 }
 
-// DEPRECATE
-//func (t *Telegram) RunHandlingUpdates(rabbit *mq.Rabbit) {
-//	//go t.MessagesHandling(postgresClient, rabbit)
-//	go t.GetUpdates(rabbit)
-//}
-
 // GetUpdates catches records only about new unread messages in channels
 func (t *Telegram) GetUpdates(rabbit *mq.Rabbit) {
 	// создаем файл для записи тестовых данных
 	logrus.Info("RUN GETTING UPDATES telegram.go")
-	file, err := os.Create("tests_data.txt")
+	file, err := os.OpenFile("tests_data.txt", os.O_APPEND|os.O_WRONLY, 0644)
 
 	if err != nil {
-		fmt.Println("Unable to create file:", err)
-		os.Exit(1)
+		logrus.Fatal(err)
 	}
 
 	defer file.Close()
@@ -110,9 +103,12 @@ func (t *Telegram) GetUpdates(rabbit *mq.Rabbit) {
 			panic(err)
 		}
 
-		file.WriteString(string(out) + "\n\n")
+		_, err = file.WriteString(string(out) + "\n\n")
+		if err != nil {
+			logrus.Panic(err)
+		}
 
-		logrus.Info("Обновления записаны в тестовый текстовый файл")
+		//logrus.Info("Обновления записаны в тестовый текстовый файл")
 
 		var updateLastMessage tdlib.UpdateChatLastMessage
 		err = json.Unmarshal(update.Raw, &updateLastMessage)
@@ -124,16 +120,15 @@ func (t *Telegram) GetUpdates(rabbit *mq.Rabbit) {
 			continue
 		}
 
-		logrus.Info("получает информацию о чате")
-
 		chat, err := t.Client.GetChat(updateLastMessage.ChatID)
 		if err != nil {
 			logrus.Panic(err)
 		}
 
-		if chat.Type.GetChatTypeEnum() != "chatTypeSupergroup" {
-			continue
-		}
+		// Убрано на время тестирования
+		//if chat.Type.GetChatTypeEnum() != "chatTypeSupergroup" {
+		//	continue
+		//}
 
 		if updateLastMessage.LastMessage.Content.GetMessageContentEnum() != "messageText" {
 			continue
@@ -146,10 +141,17 @@ func (t *Telegram) GetUpdates(rabbit *mq.Rabbit) {
 			logrus.Panic(err)
 		}
 
-		//logrus.Infof("SEND MESSAGE TO RABBIT: :#v\n", m)
+		logrus.Infof("Сообщение с id %v передано в rabbit\n", m.MessageID)
 	}
 }
 
+// DEPRECATE
+//func (t *Telegram) RunHandlingUpdates(rabbit *mq.Rabbit) {
+//	//go t.MessagesHandling(postgresClient, rabbit)
+//	go t.GetUpdates(rabbit)
+//}
+
+// DEPRECATE
 //func (t *Telegram) MessagesHandling(dbClient db.DB, rabbit *mq.Rabbit) {
 //	updates := rabbit.Consume()
 //

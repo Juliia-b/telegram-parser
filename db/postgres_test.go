@@ -47,6 +47,8 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+
+	//	TODO удалять контейнер после использования
 }
 
 func TestPostgresClient_Insert(t *testing.T) {
