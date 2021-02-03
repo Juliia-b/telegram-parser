@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -10,7 +11,8 @@ import (
 )
 
 func main() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 3000))
+	port := parseFlags()
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -31,12 +33,24 @@ type Server struct {
 }
 
 func (s *Server) Ping(ctx context.Context, in *proto.PingRequest) (*proto.PingResponse, error) {
-	logrus.Infof("PING recieved %v", in.Msg)
-
+	logrus.Infof("PING recieved `%v`", in.Msg)
 	return &proto.PingResponse{Msg: "Pong"}, nil
 }
 
-func (s *Server) NewTrackedMsg(ctx context.Context, in *proto.NewTrackedMsgRequest) (*proto.NewTrackedMsgResponse, error) {
-	logrus.Infof("NEWTRACKEDMSG recieved %v", in.Content)
-	return nil, nil
+func (s *Server) AddMsg(ctx context.Context, in *proto.AddMsgRequest) (*proto.AddMsgResponse, error) {
+	logrus.Infof("NEWTRACKEDMSG recieved msgkey `%v`", in.MsgKey)
+	return &proto.AddMsgResponse{Processed: true}, nil
+	//	if *proto.AddMsgResponse == nil
+	//	err = rpc error: code = Internal desc = grpc: error while marshaling: proto: Marshal called with nil
+}
+
+//    --------------------------------------------------------------------------------
+//                                     HELPERS
+//    --------------------------------------------------------------------------------
+
+func parseFlags() string {
+	port := flag.String("port", "foo", "")
+	flag.Parse()
+
+	return *port
 }
