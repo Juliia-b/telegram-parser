@@ -123,23 +123,16 @@ func (x *PingResponse) GetMsg() string {
 	return ""
 }
 
-type NewTrackedMsgRequest struct {
+type AddMsgRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MessageID int64  `protobuf:"varint,1,opt,name=MessageID,proto3" json:"MessageID,omitempty"`
-	ChatId    int64  `protobuf:"varint,2,opt,name=ChatId,proto3" json:"ChatId,omitempty"`
-	ChatTitle string `protobuf:"bytes,3,opt,name=ChatTitle,proto3" json:"ChatTitle,omitempty"`
-	Content   string `protobuf:"bytes,4,opt,name=Content,proto3" json:"Content,omitempty"`
-	Date      int32  `protobuf:"varint,5,opt,name=Date,proto3" json:"Date,omitempty"`
-	Views     int32  `protobuf:"varint,6,opt,name=Views,proto3" json:"Views,omitempty"`
-	Forwards  int32  `protobuf:"varint,7,opt,name=Forwards,proto3" json:"Forwards,omitempty"`
-	Replies   int32  `protobuf:"varint,8,opt,name=Replies,proto3" json:"Replies,omitempty"`
+	MsgKey string `protobuf:"bytes,1,opt,name=MsgKey,proto3" json:"MsgKey,omitempty"`
 }
 
-func (x *NewTrackedMsgRequest) Reset() {
-	*x = NewTrackedMsgRequest{}
+func (x *AddMsgRequest) Reset() {
+	*x = AddMsgRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_parser_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -147,13 +140,13 @@ func (x *NewTrackedMsgRequest) Reset() {
 	}
 }
 
-func (x *NewTrackedMsgRequest) String() string {
+func (x *AddMsgRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NewTrackedMsgRequest) ProtoMessage() {}
+func (*AddMsgRequest) ProtoMessage() {}
 
-func (x *NewTrackedMsgRequest) ProtoReflect() protoreflect.Message {
+func (x *AddMsgRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_parser_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -165,77 +158,28 @@ func (x *NewTrackedMsgRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NewTrackedMsgRequest.ProtoReflect.Descriptor instead.
-func (*NewTrackedMsgRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddMsgRequest.ProtoReflect.Descriptor instead.
+func (*AddMsgRequest) Descriptor() ([]byte, []int) {
 	return file_parser_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *NewTrackedMsgRequest) GetMessageID() int64 {
+func (x *AddMsgRequest) GetMsgKey() string {
 	if x != nil {
-		return x.MessageID
-	}
-	return 0
-}
-
-func (x *NewTrackedMsgRequest) GetChatId() int64 {
-	if x != nil {
-		return x.ChatId
-	}
-	return 0
-}
-
-func (x *NewTrackedMsgRequest) GetChatTitle() string {
-	if x != nil {
-		return x.ChatTitle
+		return x.MsgKey
 	}
 	return ""
 }
 
-func (x *NewTrackedMsgRequest) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *NewTrackedMsgRequest) GetDate() int32 {
-	if x != nil {
-		return x.Date
-	}
-	return 0
-}
-
-func (x *NewTrackedMsgRequest) GetViews() int32 {
-	if x != nil {
-		return x.Views
-	}
-	return 0
-}
-
-func (x *NewTrackedMsgRequest) GetForwards() int32 {
-	if x != nil {
-		return x.Forwards
-	}
-	return 0
-}
-
-func (x *NewTrackedMsgRequest) GetReplies() int32 {
-	if x != nil {
-		return x.Replies
-	}
-	return 0
-}
-
-type NewTrackedMsgResponse struct {
+type AddMsgResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Received bool `protobuf:"varint,1,opt,name=received,proto3" json:"received,omitempty"`
+	Processed bool `protobuf:"varint,1,opt,name=Processed,proto3" json:"Processed,omitempty"`
 }
 
-func (x *NewTrackedMsgResponse) Reset() {
-	*x = NewTrackedMsgResponse{}
+func (x *AddMsgResponse) Reset() {
+	*x = AddMsgResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_parser_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -243,13 +187,13 @@ func (x *NewTrackedMsgResponse) Reset() {
 	}
 }
 
-func (x *NewTrackedMsgResponse) String() string {
+func (x *AddMsgResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NewTrackedMsgResponse) ProtoMessage() {}
+func (*AddMsgResponse) ProtoMessage() {}
 
-func (x *NewTrackedMsgResponse) ProtoReflect() protoreflect.Message {
+func (x *AddMsgResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_parser_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -261,14 +205,14 @@ func (x *NewTrackedMsgResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NewTrackedMsgResponse.ProtoReflect.Descriptor instead.
-func (*NewTrackedMsgResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddMsgResponse.ProtoReflect.Descriptor instead.
+func (*AddMsgResponse) Descriptor() ([]byte, []int) {
 	return file_parser_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *NewTrackedMsgResponse) GetReceived() bool {
+func (x *AddMsgResponse) GetProcessed() bool {
 	if x != nil {
-		return x.Received
+		return x.Processed
 	}
 	return false
 }
@@ -281,34 +225,20 @@ var file_parser_proto_rawDesc = []byte{
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x4d, 0x73, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x03, 0x4d, 0x73, 0x67, 0x22, 0x20, 0x0a, 0x0c, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x4d, 0x73, 0x67, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x03, 0x4d, 0x73, 0x67, 0x22, 0xe4, 0x01, 0x0a, 0x14, 0x4e, 0x65, 0x77,
-	0x54, 0x72, 0x61, 0x63, 0x6b, 0x65, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x1c, 0x0a, 0x09, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x44, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x44, 0x12,
-	0x16, 0x0a, 0x06, 0x43, 0x68, 0x61, 0x74, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52,
-	0x06, 0x43, 0x68, 0x61, 0x74, 0x49, 0x64, 0x12, 0x1c, 0x0a, 0x09, 0x43, 0x68, 0x61, 0x74, 0x54,
-	0x69, 0x74, 0x6c, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x43, 0x68, 0x61, 0x74,
-	0x54, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
-	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12,
-	0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x44,
-	0x61, 0x74, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x56, 0x69, 0x65, 0x77, 0x73, 0x18, 0x06, 0x20, 0x01,
-	0x28, 0x05, 0x52, 0x05, 0x56, 0x69, 0x65, 0x77, 0x73, 0x12, 0x1a, 0x0a, 0x08, 0x46, 0x6f, 0x72,
-	0x77, 0x61, 0x72, 0x64, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x46, 0x6f, 0x72,
-	0x77, 0x61, 0x72, 0x64, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x65, 0x73,
-	0x18, 0x08, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x65, 0x73, 0x22,
-	0x33, 0x0a, 0x15, 0x4e, 0x65, 0x77, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x65, 0x64, 0x4d, 0x73, 0x67,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x63, 0x65,
-	0x69, 0x76, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x72, 0x65, 0x63, 0x65,
-	0x69, 0x76, 0x65, 0x64, 0x32, 0x89, 0x01, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x73, 0x65, 0x72, 0x12,
-	0x31, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x12, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
-	0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x4c, 0x0a, 0x0d, 0x4e, 0x65, 0x77, 0x54, 0x72, 0x61, 0x63, 0x6b, 0x65, 0x64,
-	0x4d, 0x73, 0x67, 0x12, 0x1b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x4e, 0x65, 0x77, 0x54,
-	0x72, 0x61, 0x63, 0x6b, 0x65, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x1c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x4e, 0x65, 0x77, 0x54, 0x72, 0x61, 0x63,
-	0x6b, 0x65, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x4d, 0x73, 0x67, 0x22, 0x27, 0x0a, 0x0d, 0x41, 0x64, 0x64, 0x4d,
+	0x73, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x4d, 0x73, 0x67,
+	0x4b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x4d, 0x73, 0x67, 0x4b, 0x65,
+	0x79, 0x22, 0x2e, 0x0a, 0x0e, 0x41, 0x64, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65,
+	0x64, 0x32, 0x74, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x73, 0x65, 0x72, 0x12, 0x31, 0x0a, 0x04, 0x50,
+	0x69, 0x6e, 0x67, 0x12, 0x12, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69, 0x6e, 0x67,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
+	0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x37,
+	0x0a, 0x06, 0x41, 0x64, 0x64, 0x4d, 0x73, 0x67, 0x12, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x41, 0x64, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x41, 0x64, 0x64, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -325,16 +255,16 @@ func file_parser_proto_rawDescGZIP() []byte {
 
 var file_parser_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_parser_proto_goTypes = []interface{}{
-	(*PingRequest)(nil),           // 0: proto.PingRequest
-	(*PingResponse)(nil),          // 1: proto.PingResponse
-	(*NewTrackedMsgRequest)(nil),  // 2: proto.NewTrackedMsgRequest
-	(*NewTrackedMsgResponse)(nil), // 3: proto.NewTrackedMsgResponse
+	(*PingRequest)(nil),    // 0: proto.PingRequest
+	(*PingResponse)(nil),   // 1: proto.PingResponse
+	(*AddMsgRequest)(nil),  // 2: proto.AddMsgRequest
+	(*AddMsgResponse)(nil), // 3: proto.AddMsgResponse
 }
 var file_parser_proto_depIdxs = []int32{
 	0, // 0: proto.Parser.Ping:input_type -> proto.PingRequest
-	2, // 1: proto.Parser.NewTrackedMsg:input_type -> proto.NewTrackedMsgRequest
+	2, // 1: proto.Parser.SendAddMsgRequest:input_type -> proto.AddMsgRequest
 	1, // 2: proto.Parser.Ping:output_type -> proto.PingResponse
-	3, // 3: proto.Parser.NewTrackedMsg:output_type -> proto.NewTrackedMsgResponse
+	3, // 3: proto.Parser.SendAddMsgRequest:output_type -> proto.AddMsgResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -373,7 +303,7 @@ func file_parser_proto_init() {
 			}
 		}
 		file_parser_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NewTrackedMsgRequest); i {
+			switch v := v.(*AddMsgRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -385,7 +315,7 @@ func file_parser_proto_init() {
 			}
 		}
 		file_parser_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NewTrackedMsgResponse); i {
+			switch v := v.(*AddMsgResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -430,7 +360,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ParserClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
-	NewTrackedMsg(ctx context.Context, in *NewTrackedMsgRequest, opts ...grpc.CallOption) (*NewTrackedMsgResponse, error)
+	AddMsg(ctx context.Context, in *AddMsgRequest, opts ...grpc.CallOption) (*AddMsgResponse, error)
 }
 
 type parserClient struct {
@@ -450,9 +380,9 @@ func (c *parserClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.C
 	return out, nil
 }
 
-func (c *parserClient) NewTrackedMsg(ctx context.Context, in *NewTrackedMsgRequest, opts ...grpc.CallOption) (*NewTrackedMsgResponse, error) {
-	out := new(NewTrackedMsgResponse)
-	err := c.cc.Invoke(ctx, "/proto.Parser/NewTrackedMsg", in, out, opts...)
+func (c *parserClient) AddMsg(ctx context.Context, in *AddMsgRequest, opts ...grpc.CallOption) (*AddMsgResponse, error) {
+	out := new(AddMsgResponse)
+	err := c.cc.Invoke(ctx, "/proto.Parser/SendAddMsgRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +392,7 @@ func (c *parserClient) NewTrackedMsg(ctx context.Context, in *NewTrackedMsgReque
 // ParserServer is the server API for Parser service.
 type ParserServer interface {
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
-	NewTrackedMsg(context.Context, *NewTrackedMsgRequest) (*NewTrackedMsgResponse, error)
+	AddMsg(context.Context, *AddMsgRequest) (*AddMsgResponse, error)
 }
 
 // UnimplementedParserServer can be embedded to have forward compatible implementations.
@@ -472,8 +402,8 @@ type UnimplementedParserServer struct {
 func (*UnimplementedParserServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (*UnimplementedParserServer) NewTrackedMsg(context.Context, *NewTrackedMsgRequest) (*NewTrackedMsgResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method NewTrackedMsg not implemented")
+func (*UnimplementedParserServer) AddMsg(context.Context, *AddMsgRequest) (*AddMsgResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendAddMsgRequest not implemented")
 }
 
 func RegisterParserServer(s *grpc.Server, srv ParserServer) {
@@ -498,20 +428,20 @@ func _Parser_Ping_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Parser_NewTrackedMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NewTrackedMsgRequest)
+func _Parser_AddMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddMsgRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ParserServer).NewTrackedMsg(ctx, in)
+		return srv.(ParserServer).AddMsg(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.Parser/NewTrackedMsg",
+		FullMethod: "/proto.Parser/SendAddMsgRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParserServer).NewTrackedMsg(ctx, req.(*NewTrackedMsgRequest))
+		return srv.(ParserServer).AddMsg(ctx, req.(*AddMsgRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -525,8 +455,8 @@ var _Parser_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Parser_Ping_Handler,
 		},
 		{
-			MethodName: "NewTrackedMsg",
-			Handler:    _Parser_NewTrackedMsg_Handler,
+			MethodName: "SendAddMsgRequest",
+			Handler:    _Parser_AddMsg_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
