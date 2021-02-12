@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Arman92/go-tdlib"
 	_ "github.com/lib/pq"
-	"os"
+	"telegram-parser/flags"
 	"time"
 )
 
@@ -72,10 +72,10 @@ type UpdateRow struct {
 //    --------------------------------------------------------------------------------
 
 // ConnectToPostgres opens a connection to PostgreSQL
-func ConnectToPostgres() (*PostgresClient, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", os.Getenv("POSTGRESPASSWORD"), "test")
+func ConnectToPostgres(conf flags.Config) (*PostgresClient, error) {
+	pgInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", conf.PostgresHost, conf.PostgresPort, conf.PostgresUser, conf.PostgresPassword, conf.PostgresDbName)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sql.Open("postgres", pgInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -85,17 +85,22 @@ func ConnectToPostgres() (*PostgresClient, error) {
 		return nil, err
 	}
 
-	res, err := db.Exec(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`)
+	//TODO change table name
+	var tableName = "tg_parser"
+	var sqlStatement = `CREATE TABLE IF NOT EXISTS $1 ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`
+
+	res, err := db.Exec(sqlStatement, tableName)
 	if err != nil {
 		return nil, err
 	}
 
 	// count can be 0 if table already EXISTS, else count 1
 	if count, _ := res.RowsAffected(); count > 1 {
-		return nil, errors.New("table creation error")
+		return nil, errors.New("table connection error")
 	}
 
-	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", "tg_parser"}, SchemaInfo: getSchemaInfo(), TimePeriods: getTimePeriods()}, nil
+	//TODO check if it is possible to reduce or simplify the structure PostgresClient
+	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}, SchemaInfo: getSchemaInfo(), TimePeriods: getTimePeriods()}, nil
 }
 
 // Close closes the connection to the PostgreSQL
@@ -105,19 +110,17 @@ func (pg *PostgresClient) Close() {
 
 // Insert inserts data to the table
 func (pg *PostgresClient) Insert(m *Message) error {
-	sqlStatement := `INSERT INTO tg_parser (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+	sqlStatement := `INSERT INTO $0 (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
 
-	_, err := pg.Connection.Exec(sqlStatement, m.MessageID, m.ChatID, m.ChatTitle, m.Content, m.Date, m.Views, m.Forwards, m.Replies)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, m.MessageID, m.ChatID, m.ChatTitle, m.Content, m.Date, m.Views, m.Forwards, m.Replies)
+	return err
 }
 
 // GetAllData returns all table rows
 func (pg *PostgresClient) GetAllData() ([]*Message, error) {
-	rows, err := pg.Connection.Query(`SELECT * FROM tg_parser;`)
+	var sqlStatement = `SELECT * FROM $1;`
+
+	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName)
 	if err != nil {
 		return nil, err
 	}
@@ -139,9 +142,9 @@ func (pg *PostgresClient) GetAllData() ([]*Message, error) {
 
 // GetMessageById returns only one row with the given chat id and message id
 func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Message, error) {
-	selectString := fmt.Sprintf(`SELECT * FROM tg_parser WHERE chat_id=%v AND message_id=%v ;`, chatID, messageID)
+	var sqlStatement = `SELECT * FROM $1 WHERE chat_id=$2 AND message_id=$3 ;`
 
-	rows, err := pg.Connection.Query(selectString)
+	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName, chatID, messageID)
 	if err != nil {
 		return nil, err
 	}
@@ -159,15 +162,17 @@ func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Messag
 // Update updates statistics and content of the message.
 func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 	//UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
-	updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
+	//updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
 
-	result, err := pg.Connection.Exec(updateString)
+	var sqlStatement = `UPDATE $1 SET chat_title = '$2', content = '$3' , views = $4 , forwards = $5, replies = $6 WHERE chat_id = $7 AND message_id = $8 RETURNING message_id;`
+
+	result, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
 	updateCount, _ = result.RowsAffected()
 
+	//TODO зачем возвращать количество обновленных???
 	return updateCount, err
 }
 
-// TODO изменить => период (последние сутки) = время от 12.01 AM по time.Now()
 // GetMessagesForATimePeriod returns messages for the selected time period.
 // The list of time intervals is in the structure TimePeriods in PostgresClient
 func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, error) {
@@ -176,9 +181,10 @@ func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, 
 		return nil, err
 	}
 
-	selectString := fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v ;`, pg.DbInfo.TableName, from, to)
+	//selectString := fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v ;`, pg.DbInfo.TableName, from, to)
+	var sqlStatement = `SELECT * FROM $1 WHERE date>=$2 AND date<=$3;`
 
-	rows, err := pg.Connection.Query(selectString)
+	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -201,6 +207,27 @@ func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, 
 //    --------------------------------------------------------------------------------
 //                                     HELPERS
 //    --------------------------------------------------------------------------------
+
+// NewMessage returns a structure compatible with the database schema
+func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
+	m := &Message{
+		MessageID: message.ID,
+		ChatID:    message.ChatID,
+		ChatTitle: chat.Title,
+		Content:   message.Content.(*tdlib.MessageText).Text.Text,
+		Date:      message.Date,
+	}
+
+	if message.InteractionInfo != nil {
+		m.Views = message.InteractionInfo.ViewCount
+		m.Forwards = message.InteractionInfo.ForwardCount
+		if message.InteractionInfo.ReplyInfo != nil {
+			m.Replies = message.InteractionInfo.ReplyInfo.ReplyCount
+		}
+	}
+
+	return m
+}
 
 // getSchemaInfo returns the names of fields in the database schema
 func getSchemaInfo() *SchemaInfo {
@@ -225,27 +252,6 @@ func getTimePeriods() *TimePeriods {
 		LastWeek:           "lastweek",
 		ThisMonth:          "thismonth",
 	}
-}
-
-// NewMessage returns a structure compatible with the database schema
-func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
-	m := &Message{
-		MessageID: message.ID,
-		ChatID:    message.ChatID,
-		ChatTitle: chat.Title,
-		Content:   message.Content.(*tdlib.MessageText).Text.Text,
-		Date:      message.Date,
-	}
-
-	if message.InteractionInfo != nil {
-		m.Views = message.InteractionInfo.ViewCount
-		m.Forwards = message.InteractionInfo.ForwardCount
-		if message.InteractionInfo.ReplyInfo != nil {
-			m.Replies = message.InteractionInfo.ReplyInfo.ReplyCount
-		}
-	}
-
-	return m
 }
 
 // scan scans row data into *Message
