@@ -5,42 +5,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//if os.Getenv("POSTGRESPASSWORD") == "" {
-//logrus.Panic(`Environment variable "POSTGRESPASSWORD" is blank`)
-//}
-//
-//if os.Getenv("TGTELEPHONENUMBER") == "" {
-//logrus.Panic(`Environment variable "TGTELEPHONENUMBER" is blank`)
-//}
-//
-//if os.Getenv("TGAPIID") == "" {
-//logrus.Panic(`Environment variable "TGAPIID" is blank`)
-//}
-//
-//if os.Getenv("TGAPIHASH") == "" {
-//logrus.Panic(`Environment variable "TGAPIHASH" is blank`)
-//}
-
-//("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", os.Getenv("POSTGRESPASSWORD"), "test")
-//(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`)
-
-/*
-host="localhost"    def
-port=5432           def
-user="postgres"  def
-dbname="telegram-parser"   def
-password=******
-*/
-
 type Config struct {
-	PostgresHost     string
-	PostgresPort     string
-	PostgresUser     string
-	PostgresDbName   string
-	PostgresPassword string
+	Postgres *Postgres
+	Telegram *Telegram
 }
 
-// Parse
+type Postgres struct {
+	Host     string
+	Port     string
+	User     string
+	DbName   string
+	Password string
+}
+
+type Telegram struct {
+	TelephoneNumber string
+	APIID           string
+	APIHash         string
+}
+
+// Parse parses the command-line flags.
 func Parse() *Config {
 	var (
 		postgresHost     string
@@ -48,81 +32,58 @@ func Parse() *Config {
 		postgresUser     string
 		postgresDbName   string
 		postgresPassword string
+
+		telephoneNumber string
+		apiID           string
+		apiHash         string
 	)
 
-	flag.StringVar(&postgresHost, "pghost", "localhost", "host for connecting to postregres") //-n=popopo
+	flag.StringVar(&postgresHost, "pghost", "localhost", "host for connecting to postregres")
 	flag.StringVar(&postgresPort, "pgport", "5432", "port for connecting to postregres")
 	flag.StringVar(&postgresUser, "pguser", "postgres", "postregres user")
 	flag.StringVar(&postgresDbName, "dbname", "telegram-parser", "postregres database name")
 	flag.StringVar(&postgresPassword, "pwd", "", "password for postgres")
+
+	flag.StringVar(&telephoneNumber, "tel", "", "phone number required to connect to the telegram client")
+	flag.StringVar(&apiID, "id", "", "application identifier for Telegram API access, which can be obtained at https://my.telegram.org   --- must be non-empty..")
+	flag.StringVar(&apiHash, "hash", "", "application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org  --- must be non-empty..")
 	flag.Parse()
 
-	if postgresPassword == "" {
+	conf := &Config{
+		&Postgres{
+			Host:     postgresHost,
+			Port:     postgresPort,
+			User:     postgresUser,
+			DbName:   postgresDbName,
+			Password: postgresPassword,
+		},
+		&Telegram{
+			TelephoneNumber: telephoneNumber,
+			APIID:           apiID,
+			APIHash:         apiHash,
+		},
+	}
+
+	conf.checkValidity()
+
+	return conf
+}
+
+//checkValidity checks validity of the fields
+func (c *Config) checkValidity() {
+	if c.Postgres.Password == "" {
 		logrus.Panic("no password provided for postgres database")
 	}
 
-	return &Config{
-		PostgresHost:     postgresHost,
-		PostgresPort:     postgresPort,
-		PostgresUser:     postgresUser,
-		PostgresDbName:   postgresDbName,
-		PostgresPassword: postgresPassword,
+	if c.Telegram.TelephoneNumber == "" {
+		logrus.Panic("no phone number provided to access telegrams to the client")
+	}
+
+	if c.Telegram.APIID == "" {
+		logrus.Panic("no API ID provided to access telegrams to the client")
+	}
+
+	if c.Telegram.APIHash == "" {
+		logrus.Panic("no API hash provided to access telegrams to the client")
 	}
 }
-
-// ----------DEPRECATED----------
-//// ParseFlags parses args and checks if the values is an ipv4 address
-//func ParseFlags(addresses chan string) {
-//	flag.Parse()
-//	nodes := flag.Args()
-//
-//	for _, node := range nodes {
-//		valid := isValidNodeAddress(node)
-//		if !valid {
-//			logrus.Errorf("The value `%v` passed in the arguments is not an address\n", node)
-//			continue
-//		}
-//
-//		addresses <- node
-//	}
-//}
-//
-//// isValidNodeAddress checks if value is an ipv4 address
-//func isValidNodeAddress(hostport string) bool {
-//	spl := strings.Split(hostport, ":")
-//	if len(spl) != 2 {
-//		return false
-//	}
-//
-//	port := spl[1]
-//	intPort, err := strconv.Atoi(port)
-//	if err != nil {
-//		return false
-//	}
-//
-//	if intPort > 65535 || intPort < 1 {
-//		return false
-//	}
-//
-//	if spl[0] == "localhost" {
-//		return true
-//	}
-//
-//	spl = strings.Split(spl[0], ".")
-//	if len(spl) != 4 {
-//		return false
-//	}
-//
-//	for _, host := range spl {
-//		intHost, err := strconv.Atoi(host)
-//		if err != nil {
-//			return false
-//		}
-//
-//		if intHost > 255 || intHost < 0 {
-//			return false
-//		}
-//	}
-//
-//	return true
-//}
