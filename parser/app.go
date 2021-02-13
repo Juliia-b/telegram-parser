@@ -132,6 +132,10 @@ func (a *App) GetUpdates() {
 			continue
 		}
 
+		if !updateLastMessage.LastMessage.CanGetStatistics {
+			continue
+		}
+
 		chat, err := tgCli.GetChat(updateLastMessage.ChatID)
 		if err != nil {
 			logrus.Panicf("%v with updateLastMessage= %v", err, updateLastMessage)
