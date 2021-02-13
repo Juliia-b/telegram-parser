@@ -6,24 +6,6 @@ import (
 	"os"
 )
 
-func CheckENV() {
-	if os.Getenv("POSTGRESPASSWORD") == "" {
-		logrus.Panic(`Environment variable "POSTGRESPASSWORD" is blank`)
-	}
-
-	if os.Getenv("TGTELEPHONENUMBER") == "" {
-		logrus.Panic(`Environment variable "TGTELEPHONENUMBER" is blank`)
-	}
-
-	if os.Getenv("TGAPIID") == "" {
-		logrus.Panic(`Environment variable "TGAPIID" is blank`)
-	}
-
-	if os.Getenv("TGAPIHASH") == "" {
-		logrus.Panic(`Environment variable "TGAPIHASH" is blank`)
-	}
-}
-
 func ConfigureLogrus() {
 	formatter := runtime.Formatter{
 		ChildFormatter: &logrus.TextFormatter{
