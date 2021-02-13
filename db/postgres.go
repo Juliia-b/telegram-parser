@@ -17,7 +17,7 @@ import (
 type PostgresClient struct {
 	Connection  *sql.DB
 	DbInfo      *DbInfo
-	SchemaInfo  *SchemaInfo
+	SchemaInfo  *Schema
 	TimePeriods *TimePeriods
 }
 
@@ -26,7 +26,7 @@ type DbInfo struct {
 	TableName string
 }
 
-type SchemaInfo struct {
+type Schema struct {
 	MessageID string
 	ChatID    string
 	ChatTitle string
@@ -51,7 +51,7 @@ type Message struct {
 	ChatID    int64
 	ChatTitle string
 	Content   string
-	Date      int32
+	Date      int64
 	Views     int32
 	Forwards  int32
 	Replies   int32
@@ -72,8 +72,8 @@ type UpdateRow struct {
 //    --------------------------------------------------------------------------------
 
 // ConnectToPostgres opens a connection to PostgreSQL
-func ConnectToPostgres(conf flags.Config) (*PostgresClient, error) {
-	pgInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", conf.PostgresHost, conf.PostgresPort, conf.PostgresUser, conf.PostgresPassword, conf.PostgresDbName)
+func ConnectToPostgres(conf *flags.Config) (*PostgresClient, error) {
+	pgInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", conf.Postgres.Host, conf.Postgres.Port, conf.Postgres.User, conf.Postgres.Password, conf.Postgres.DbName)
 
 	db, err := sql.Open("postgres", pgInfo)
 	if err != nil {
@@ -215,7 +215,7 @@ func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
 		ChatID:    message.ChatID,
 		ChatTitle: chat.Title,
 		Content:   message.Content.(*tdlib.MessageText).Text.Text,
-		Date:      message.Date,
+		Date:      int64(message.Date),
 	}
 
 	if message.InteractionInfo != nil {
@@ -230,8 +230,8 @@ func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
 }
 
 // getSchemaInfo returns the names of fields in the database schema
-func getSchemaInfo() *SchemaInfo {
-	return &SchemaInfo{
+func getSchemaInfo() *Schema {
+	return &Schema{
 		MessageID: "message_id",
 		ChatID:    "chat_id",
 		ChatTitle: "chat_title",
@@ -266,10 +266,6 @@ func scan(row *sql.Rows) (*Message, error) {
 
 func dateCalculation(pg *PostgresClient, period string) (from int64, to int64, err error) {
 	p := pg.TimePeriods
-
-	from = int64(0)
-	to = int64(0)
-	err = nil
 
 	switch period {
 	case p.Today:
