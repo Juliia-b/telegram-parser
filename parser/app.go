@@ -108,18 +108,30 @@ func (a *App) TelegramAuthorization(conf *flags.Config) {
 	}
 }
 
-// GetUpdates catches records only about new unread messages in channels
+// GetUpdates starts reading messages from the telegram raw updates channel.
 func (a *App) GetUpdates() {
-	logrus.Info("RUN GETTING UPDATES")
+	var COUNT_REVIEW_GOROUTINES = 100
+	var UPDATES_CHANNEL_CAPACITY = 100000
 
+	// rawUpdates gets all updates comming from tdlib
+	rawUpdates := a.Telegram.Client.GetRawUpdatesChannel(UPDATES_CHANNEL_CAPACITY)
+
+	for i := 0; i < COUNT_REVIEW_GOROUTINES; i++ {
+		go a.messageReview(rawUpdates)
+	}
+
+	logrus.Info("The system for processing Telegram updates was launched.")
+	logrus.Infof("%v goroutine messageReview launched.", UPDATES_CHANNEL_CAPACITY)
+}
+
+// messageReview checks the message for compliance with system requirements.
+func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 	var (
 		tgCli  = a.Telegram.Client
 		dbconn = a.DbCli
 		rabbit = a.MqCli
 	)
 
-	// rawUpdates gets all updates comming from tdlib
-	rawUpdates := tgCli.GetRawUpdatesChannel(100000)
 	for update := range rawUpdates {
 
 		var updateLastMessage tdlib.UpdateChatLastMessage
