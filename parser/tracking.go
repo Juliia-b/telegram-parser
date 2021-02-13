@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-// RunStatisticsTracking launches several handlers for updates from telegram.
+// StartTrackingStatistics launches several handlers for updates from telegram.
 // @param handlersCount is the number of message handlers that will be run. The minimum value is 10.
-func (a *App) RunStatisticsTracking(handlersCount int) {
+func (a *App) StartTrackingStatistics(handlersCount int) {
 	if handlersCount < 10 {
 		handlersCount = 10
 	}

@@ -121,14 +121,14 @@ func (a *App) GetUpdates() {
 	}
 
 	logrus.Info("The system for processing Telegram updates was launched.")
-	logrus.Infof("%v goroutine messageReview launched.", UPDATES_CHANNEL_CAPACITY)
+	logrus.Infof("%v goroutine messageReview launched.", COUNT_REVIEW_GOROUTINES)
 }
 
 // messageReview checks the message for compliance with system requirements.
 func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 	var (
 		tgCli  = a.Telegram.Client
-		dbconn = a.DbCli
+		dbConn = a.DbCli
 		rabbit = a.MqCli
 	)
 
@@ -164,7 +164,7 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 
 		m := db.NewMessage(updateLastMessage.LastMessage, chat.Title)
 
-		err = dbconn.Insert(m)
+		err = dbConn.Insert(m)
 		if err != nil {
 			logrus.Error(err)
 		}
