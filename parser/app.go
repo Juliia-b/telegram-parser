@@ -150,7 +150,7 @@ func (a *App) GetUpdates() {
 			continue
 		}
 
-		m := db.NewMessage(updateLastMessage.LastMessage, chat)
+		m := db.NewMessage(updateLastMessage.LastMessage, chat.Title)
 
 		err = dbconn.Insert(m)
 		if err != nil {
