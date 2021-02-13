@@ -49,17 +49,18 @@ type TimePeriods struct {
 type Message struct {
 	MessageID int64
 	ChatID    int64
+	Date      int64
 	ChatTitle string
 	Content   string
-	Date      int64
 	Views     int32
 	Forwards  int32
 	Replies   int32
 }
 
 type UpdateRow struct {
-	MessageId    int64
-	ChatId       int64
+	MessageID    int64
+	ChatID       int64
+	NewDate      int64
 	NewChatTitle string
 	NewContent   string
 	NewViews     int32
@@ -162,11 +163,11 @@ func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Messag
 // Update updates statistics and content of the message.
 func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 	//UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
-	//updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
+	//updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatID, u.MessageID)
 
-	var sqlStatement = `UPDATE $1 SET chat_title = '$2', content = '$3' , views = $4 , forwards = $5, replies = $6 WHERE chat_id = $7 AND message_id = $8 RETURNING message_id;`
+	var sqlStatement = `UPDATE $1 SET chat_title = '$2', content = '$3' , views = $4 , forwards = $5, replies = $6, date = $7 WHERE chat_id = $8 AND message_id = $9 RETURNING message_id;`
 
-	result, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatId, u.MessageId)
+	result, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.ChatID, u.MessageID)
 	updateCount, _ = result.RowsAffected()
 
 	//TODO зачем возвращать количество обновленных???
@@ -209,11 +210,11 @@ func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, 
 //    --------------------------------------------------------------------------------
 
 // NewMessage returns a structure compatible with the database schema
-func NewMessage(message *tdlib.Message, chat *tdlib.Chat) *Message {
+func NewMessage(message *tdlib.Message, chatTitle string) *Message {
 	m := &Message{
 		MessageID: message.ID,
 		ChatID:    message.ChatID,
-		ChatTitle: chat.Title,
+		ChatTitle: chatTitle,
 		Content:   message.Content.(*tdlib.MessageText).Text.Text,
 		Date:      int64(message.Date),
 	}
