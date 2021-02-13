@@ -21,7 +21,7 @@ type Rabbit struct {
 //                                     METHODS
 //    --------------------------------------------------------------------------------
 
-// RabbitInit returns a message broker instance with the required queue connections
+// RabbitInit returns a message broker instance with the required queue connections.
 func RabbitInit() (*Rabbit, error) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
@@ -33,7 +33,7 @@ func RabbitInit() (*Rabbit, error) {
 		return nil, err
 	}
 
-	q, err := ch.QueueDeclare(
+	updatesQ, err := ch.QueueDeclare(
 		"updates", // name
 		true,      // durable
 		false,     // delete when unused
@@ -48,17 +48,19 @@ func RabbitInit() (*Rabbit, error) {
 	rabbit := &Rabbit{
 		Connection:   conn,
 		Channel:      ch,
-		UpdatesQueue: q,
+		UpdatesQueue: updatesQ,
 	}
 
 	return rabbit, nil
 }
 
+// CloseConn cleanly closes the RabbitMQ Channel and Connection.
 func (r *Rabbit) CloseConn() {
 	r.Channel.Close()
 	r.Connection.Close()
 }
 
+// Publish sends a Publishing from the client to an exchange on the server.
 func (r *Rabbit) Publish(msg *db.Message) error {
 	body := marshalMessage(msg)
 
@@ -75,6 +77,7 @@ func (r *Rabbit) Publish(msg *db.Message) error {
 	return err
 }
 
+// Consume immediately starts delivering queued messages
 func (r *Rabbit) Consume() <-chan amqp.Delivery {
 	msgs, err := r.Channel.Consume(
 		r.UpdatesQueue.Name, // queue
