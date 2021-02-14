@@ -15,12 +15,12 @@ var testPort string
 //    ---------------------------------INSERT-----------------------------------------
 var (
 	// Insert
-	m1 = &Message{10, 1, "T1", "chat1-message10", 5000, 12, 13, 14}
-	m2 = &Message{11, 1, "T1", "chat1-message11", 7000, 40, 2, 1}
-	m3 = &Message{10, 5, "T5", "chat5-message10", 3000, 99, 50, 0}
-	m4 = &Message{11, 5, "T5", "chat5-message11", 7000, 20, 19, 14}
-	m5 = &Message{40, 9, "T9", "chat9-message40", 2000, 50, 20, 10}
-	m6 = &Message{41, 9, "T9", "chat9-message41", 3000, 40, 10, 0}
+	m1 = &Message{10, 1, 5000, "T1", "chat1-message10", 12, 13, 14}
+	m2 = &Message{11, 1, 7000, "T1", "chat1-message11", 40, 2, 1}
+	m3 = &Message{10, 5, 3000, "T5", "chat5-message10", 99, 50, 0}
+	m4 = &Message{11, 5, 7000, "T5", "chat5-message11", 20, 19, 14}
+	m5 = &Message{40, 9, 2000, "T9", "chat9-message40", 50, 20, 10}
+	m6 = &Message{41, 9, 3000, "T9", "chat9-message41", 40, 10, 0}
 )
 
 var testInsert = []*Message{m1, m2, m3, m4, m5, m6}
@@ -54,22 +54,22 @@ var testGetMessageByIds = []*testGetMessageById{
 
 //    ------------------------------------UPDATE--------------------------------------
 var (
-	// To update values (after the test will be deleted from database)
-	m7 = &Message{20, 70, "OLD", "OLD-cont", 7000, 30, 20, 10}
+	// Message over which the fields will be updated (after the test will be deleted from database)
+	m7 = &Message{20, 70, 7000, "OLD", "OLD-cont", 30, 20, 10}
 
 	// Will update data
-	u1 = &UpdateRow{20, 70, "OLD", "OLD-cont", 35, 25, 15}
-	u2 = &UpdateRow{20, 70, "NEW", "NEW-cont", 30, 20, 10}
-	u3 = &UpdateRow{20, 70, "NEW", "NEW-cont", 35, 25, 15}
+	u1 = &UpdateRow{20, 70, 7000, "OLD", "OLD-cont", 35, 25, 15}
+	u2 = &UpdateRow{20, 70, 8000, "NEW", "NEW-cont", 30, 20, 10}
+	u3 = &UpdateRow{20, 70, 9000, "NEW", "NEW-cont", 35, 25, 15}
 
 	// No such chat ID and message ID in database
-	u4 = &UpdateRow{1, 1, "OLD", "OLD-cont", 35, 25, 15}
-	u5 = &UpdateRow{2, 2, "NEW", "NEW-cont", 30, 20, 10}
-	u6 = &UpdateRow{3, 3, "NEW", "OLD-cont", 35, 25, 15}
+	u4 = &UpdateRow{1, 1, 7000, "OLD", "OLD-cont", 35, 25, 15}
+	u5 = &UpdateRow{2, 2, 8000, "NEW", "NEW-cont", 30, 20, 10}
+	u6 = &UpdateRow{3, 3, 9000, "NEW", "OLD-cont", 35, 25, 15}
 )
 
 type testUpdate struct {
-	InitMessage         *Message
+	InitialMessage      *Message
 	UpdateRow           *UpdateRow
 	ErrorText           string
 	ExpectedUpdateCount int64
@@ -98,31 +98,50 @@ var testUpdates = []*testUpdate{
 //                                     HELPERS
 //    --------------------------------------------------------------------------------
 
+// postgresTestConnection creates a connection to a test database in a docker container
 func postgresTestConnection() (*PostgresClient, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("postgres://postgres:secret@localhost:%s/%s?sslmode=disable", testPort, "postgres"))
+	var driverName = "postgres"
+	var tableName = "tg_parser"
+	var dbName = "postgres"
+
+	var dataSourceName = fmt.Sprintf("postgres://postgres:secret@localhost:%s/%s?sslmode=disable", testPort, "postgres")
+
+	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tg_parser ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`)
+	var sqlStatement = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %v ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`, tableName)
+
+	_, err = db.Exec(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", "tg_parser"}, SchemaInfo: getSchemaInfo(), TimePeriods: getTimePeriods()}, nil
+	return &PostgresClient{
+		Connection:  db,
+		DbInfo:      &DbInfo{dbName, tableName},
+		SchemaInfo:  getSchemaInfo(),
+		TimePeriods: getTimePeriods(),
+	}, nil
 }
 
+// postgresTestGetRowsCount returns the number of fields in a test database in a docker container
 func postgresTestGetRowsCount(pg *PostgresClient) (int, error) {
-	count := 0
+	var count int
+	var sqlStatement = fmt.Sprintf("SELECT COUNT(*) FROM %v", pg.DbInfo.TableName)
 
-	row := pg.Connection.QueryRow("SELECT COUNT(*) FROM tg_parser")
+	row := pg.Connection.QueryRow(sqlStatement)
 	err := row.Scan(&count)
 
 	return count, err
 }
 
+// postgresTestDeleteRow deletes a field in a test database in a docker container
 func postgresTestDeleteRow(pg *PostgresClient, chatId int64, messageId int64) error {
-	_, err := pg.Connection.Exec(fmt.Sprintf("DELETE FROM %v WHERE chat_id = %v AND message_id = %v;", pg.DbInfo.TableName, chatId, messageId))
+	var sqlStatement = fmt.Sprintf("DELETE FROM %v WHERE chat_id = %v AND message_id = %v;", pg.DbInfo.TableName, chatId, messageId)
+
+	_, err := pg.Connection.Exec(sqlStatement)
 
 	return err
 }

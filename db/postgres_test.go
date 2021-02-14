@@ -51,6 +51,8 @@ func TestMain(m *testing.M) {
 	//	TODO удалять контейнер после использования
 }
 
+//    ---------------------------------INSERT-----------------------------------------
+
 func TestPostgresClient_Insert(t *testing.T) {
 	pg, err := postgresTestConnection()
 	if err != nil {
@@ -95,6 +97,8 @@ func TestPostgresClient_Insert(t *testing.T) {
 	}
 }
 
+//    --------------------------------GETMESSAGEBYID----------------------------------
+
 func TestPostgresClient_GetMessageById(t *testing.T) {
 	pg, err := postgresTestConnection()
 	if err != nil {
@@ -128,6 +132,8 @@ func TestPostgresClient_GetMessageById(t *testing.T) {
 	}
 }
 
+//    ------------------------------------UPDATE--------------------------------------
+
 func TestPostgresClient_Update(t *testing.T) {
 	pg, err := postgresTestConnection()
 	if err != nil {
@@ -137,7 +143,7 @@ func TestPostgresClient_Update(t *testing.T) {
 	for index, test := range testUpdates {
 
 		// Removing previous values in database
-		err = postgresTestDeleteRow(pg, test.InitMessage.ChatID, test.InitMessage.MessageID)
+		err = postgresTestDeleteRow(pg, test.InitialMessage.ChatID, test.InitialMessage.MessageID)
 		if err != nil {
 			log.Fatalf("RANGE INDEX %v\npostgresTestDeleteRow error: %v \n",
 				color.MagentaString("%v", index), color.RedString("%v", err.Error()))
@@ -147,21 +153,23 @@ func TestPostgresClient_Update(t *testing.T) {
 		var expectedMessage Message
 		var updateValues UpdateRow
 
-		gotMessage = test.InitMessage
+		gotMessage = test.InitialMessage
 
-		expectedMessage = *test.InitMessage
+		expectedMessage = *test.InitialMessage
 		updateValues = *test.UpdateRow
 
+		// if updates are expected to be accepted, the expected message will change according to the updateValues
 		if test.ExpectedUpdateCount == 1 {
 			expectedMessage.ChatTitle = updateValues.NewChatTitle
 			expectedMessage.Content = updateValues.NewContent
 			expectedMessage.Views = updateValues.NewViews
 			expectedMessage.Forwards = updateValues.NewForwards
 			expectedMessage.Replies = updateValues.NewReplies
+			expectedMessage.Date = updateValues.NewDate
 		}
 
 		// MessageToUpdate is constant
-		err = pg.Insert(test.InitMessage)
+		err = pg.Insert(test.InitialMessage)
 		if err != nil {
 			log.Fatalf(
 				"RANGE INDEX %v\nInsert error: %v\n",
@@ -170,11 +178,15 @@ func TestPostgresClient_Update(t *testing.T) {
 
 		updateCount, err := pg.Update(test.UpdateRow)
 		if (err != nil && test.ExpectedUpdateCount == 1) || (updateCount != test.ExpectedUpdateCount) {
-
+			// 1 row update expected. Instead, we got an error, or the number of updated rows is not equal to 1
 			t.Error(fmt.Sprintf(
-				"RANGE INDEX %v\nInit message: %v\nUpdate values: %v\nRESULT expected %v\nRESULT got %v\nERROR expected %v\nERROR got %v\nCOUNT expected %v\nCOUNT got %v\n",
+				"RANGE INDEX %v\n"+
+					"Init message: %v\nUpdate values: %v\n"+
+					"RESULT expected %v\nRESULT got %v\n"+
+					"ERROR expected %v\nERROR got %v\n"+
+					"COUNT expected %v\nCOUNT got %v\n",
 				color.MagentaString("%#v", index),
-				color.MagentaString("%#v", test.InitMessage), color.MagentaString("%#v", test.UpdateRow),
+				color.MagentaString("%#v", test.InitialMessage), color.MagentaString("%#v", test.UpdateRow),
 				color.GreenString("%#v", expectedMessage), color.RedString("%#v", gotMessage),
 				color.GreenString("%#v", test.ErrorText), color.RedString("%#v", err),
 				color.GreenString("%#v", test.ExpectedUpdateCount), color.RedString("%#v", updateCount),
@@ -182,10 +194,12 @@ func TestPostgresClient_Update(t *testing.T) {
 
 			continue
 		} else if err != nil && test.ExpectedUpdateCount == 0 {
+			// the error that we made a mistake received, the test passed
 			continue
 		}
 
-		gotMessage, err = pg.GetMessageById(test.InitMessage.ChatID, test.InitMessage.MessageID)
+		// receive updated message from DB
+		gotMessage, err = pg.GetMessageById(test.InitialMessage.ChatID, test.InitialMessage.MessageID)
 		if err != nil {
 			t.Errorf("RANGE INDEX %v\nUnexpected behavior. Error \"%v\" returned from method %v",
 				color.MagentaString("%#v", index),
@@ -193,11 +207,12 @@ func TestPostgresClient_Update(t *testing.T) {
 			continue
 		}
 
+		// checking the received message for compliance with expectations
 		if !cmp.Equal(*gotMessage, expectedMessage) {
 			t.Error(fmt.Sprintf(
 				"RANGE INDEX %v\nInit message: %v\nUpdate values: %v\nRESULT expected %v\nRESULT got %v\nERROR expected %v\nERROR got %v\n",
 				color.MagentaString("%#v", index),
-				color.MagentaString("%#v", test.InitMessage), color.MagentaString("%#v", test.UpdateRow),
+				color.MagentaString("%#v", test.InitialMessage), color.MagentaString("%#v", test.UpdateRow),
 				color.GreenString("%#v", expectedMessage), color.RedString("%#v", gotMessage),
 				color.GreenString("%#v", test.ErrorText), color.RedString("%#v", err),
 			))
