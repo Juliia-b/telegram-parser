@@ -86,11 +86,10 @@ func ConnectToPostgres(conf *flags.Config) (*PostgresClient, error) {
 		return nil, err
 	}
 
-	//TODO change table name
 	var tableName = "tg_parser"
-	var sqlStatement = `CREATE TABLE IF NOT EXISTS $1 ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`
+	var sqlStatement = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %v ( message_id bigint, chat_id bigint, chat_title text, content text, date bigint, views integer, forwards integer, replies integer, PRIMARY KEY(message_id, chat_id) );`, tableName)
 
-	res, err := db.Exec(sqlStatement, tableName)
+	res, err := db.Exec(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -111,17 +110,17 @@ func (pg *PostgresClient) Close() {
 
 // Insert inserts data to the table
 func (pg *PostgresClient) Insert(m *Message) error {
-	sqlStatement := `INSERT INTO $0 (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+	sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies) VALUES (%v, %v, '%v', '%v', %v, %v, %v, %v);`, pg.DbInfo.TableName, m.MessageID, m.ChatID, m.ChatTitle, m.Content, m.Date, m.Views, m.Forwards, m.Replies)
 
-	_, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, m.MessageID, m.ChatID, m.ChatTitle, m.Content, m.Date, m.Views, m.Forwards, m.Replies)
+	_, err := pg.Connection.Exec(sqlStatement)
 	return err
 }
 
 // GetAllData returns all table rows
 func (pg *PostgresClient) GetAllData() ([]*Message, error) {
-	var sqlStatement = `SELECT * FROM $1;`
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v;`, pg.DbInfo.TableName)
 
-	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName)
+	rows, err := pg.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +142,9 @@ func (pg *PostgresClient) GetAllData() ([]*Message, error) {
 
 // GetMessageById returns only one row with the given chat id and message id
 func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Message, error) {
-	var sqlStatement = `SELECT * FROM $1 WHERE chat_id=$2 AND message_id=$3 ;`
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE chat_id=%v AND message_id=%v ;`, pg.DbInfo.TableName, chatID, messageID)
 
-	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName, chatID, messageID)
+	rows, err := pg.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -162,12 +161,9 @@ func (pg *PostgresClient) GetMessageById(chatID int64, messageID int64) (*Messag
 
 // Update updates statistics and content of the message.
 func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
-	//UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
-	//updateString := fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.ChatID, u.MessageID)
+	var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v, date = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.ChatID, u.MessageID)
 
-	var sqlStatement = `UPDATE $1 SET chat_title = '$2', content = '$3' , views = $4 , forwards = $5, replies = $6, date = $7 WHERE chat_id = $8 AND message_id = $9 RETURNING message_id;`
-
-	result, err := pg.Connection.Exec(sqlStatement, pg.DbInfo.TableName, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.ChatID, u.MessageID)
+	result, err := pg.Connection.Exec(sqlStatement)
 	updateCount, _ = result.RowsAffected()
 
 	//TODO зачем возвращать количество обновленных???
@@ -182,10 +178,9 @@ func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, 
 		return nil, err
 	}
 
-	//selectString := fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v ;`, pg.DbInfo.TableName, from, to)
-	var sqlStatement = `SELECT * FROM $1 WHERE date>=$2 AND date<=$3;`
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v;`, pg.DbInfo.TableName, from, to)
 
-	rows, err := pg.Connection.Query(sqlStatement, pg.DbInfo.TableName, from, to)
+	rows, err := pg.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
