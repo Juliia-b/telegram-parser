@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/Arman92/go-tdlib"
 	"github.com/sirupsen/logrus"
+	"os"
 	"telegram-parser/db"
-	"telegram-parser/flags"
 	"telegram-parser/mq"
 )
 
@@ -29,10 +29,10 @@ type Telegram struct {
 //    --------------------------------------------------------------------------------
 
 // AppInstance returns a structure with connections to all services
-func AppInstance(config *flags.Config) *App {
-	tg := newTgClient(config)
+func AppInstance() *App {
+	tg := newTgClient()
 
-	dbClient, err := db.ConnectToPostgres(config)
+	dbClient, err := db.ConnectToPostgres()
 	if err != nil {
 		logrus.Panic(err)
 	}
@@ -50,10 +50,10 @@ func AppInstance(config *flags.Config) *App {
 }
 
 // newTgClient Create new instance of client
-func newTgClient(conf *flags.Config) *Telegram {
+func newTgClient() *Telegram {
 	client := tdlib.NewClient(tdlib.Config{
-		APIID:              conf.Telegram.APIID,
-		APIHash:            conf.Telegram.APIHash,
+		APIID:              os.Getenv("TGAPIID"),
+		APIHash:            os.Getenv("TGAPIHASH"),
 		SystemLanguageCode: "en",
 		DeviceModel:        "Server",
 		SystemVersion:      "1.0.0",
@@ -74,14 +74,14 @@ func newTgClient(conf *flags.Config) *Telegram {
 }
 
 // TelegramAuthorization is used to authorize the user
-func (a *App) TelegramAuthorization(conf *flags.Config) {
+func (a *App) TelegramAuthorization() {
 	tgCli := a.Telegram.Client
 
 	for {
 		currentState, _ := tgCli.Authorize()
 		switch currentState.GetAuthorizationStateEnum() {
 		case tdlib.AuthorizationStateWaitPhoneNumberType:
-			_, err := tgCli.SendPhoneNumber(conf.Telegram.TelephoneNumber)
+			_, err := tgCli.SendPhoneNumber(os.Getenv("TGTELNUMBER"))
 			if err != nil {
 				fmt.Printf("Error sending phone number: %v", err)
 			}

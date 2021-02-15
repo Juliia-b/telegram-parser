@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Arman92/go-tdlib"
 	_ "github.com/lib/pq"
-	"telegram-parser/flags"
+	"os"
 	"time"
 )
 
@@ -73,8 +73,8 @@ type UpdateRow struct {
 //    --------------------------------------------------------------------------------
 
 // ConnectToPostgres opens a connection to PostgreSQL
-func ConnectToPostgres(conf *flags.Config) (*PostgresClient, error) {
-	pgInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", conf.Postgres.Host, conf.Postgres.Port, conf.Postgres.User, conf.Postgres.Password, conf.Postgres.DbName)
+func ConnectToPostgres() (*PostgresClient, error) {
+	pgInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", os.Getenv("PGHOST"), os.Getenv("PGPORT"), os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"), os.Getenv("PGDBNAME"))
 
 	db, err := sql.Open("postgres", pgInfo)
 	if err != nil {
@@ -263,6 +263,7 @@ func scan(row *sql.Rows) (*Message, error) {
 func dateCalculation(pg *PostgresClient, period string) (from int64, to int64, err error) {
 	p := pg.TimePeriods
 
+	// TODO уточнить временные периоды
 	switch period {
 	case p.Today:
 		from = time.Now().AddDate(0, 0, -1).Unix()

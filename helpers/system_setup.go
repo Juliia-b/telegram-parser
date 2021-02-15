@@ -6,6 +6,31 @@ import (
 	"os"
 )
 
+type env struct {
+	name    string
+	comment string
+}
+
+var envs = []env{
+	{"PGHOST", "Host on which postgreSQL is listened."}, // "localhost"
+	{"PGPORT", "Port on which postgreSQL is listened."}, // "5432"
+	{"PGUSER", "PostgreSQL user name."},                 // "postgres"
+	{"PGPASSWORD", "Password to access postgreSQL."},    // ***
+	{"PGDBNAME", "PostgreSQL database name."},           // "telegram-parser"
+	{"TGTELNUMBER", "Phone number required to connect to the telegram client."},
+	{"TGAPIID", "Application identifier for Telegram API access, which can be obtained at https://my.telegram.org   --- must be non-empty.."},
+	{"TGAPIHASH", "Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org  --- must be non-empty.."},
+}
+
+func CheckEnv() {
+	for _, env := range envs {
+		e := os.Getenv(env.name)
+		if e == "" {
+			logrus.Fatalf("Missing global variable %v. Usage : %v\n ", env.name, env.comment)
+		}
+	}
+}
+
 func ConfigureLogrus() {
 	formatter := runtime.Formatter{
 		ChildFormatter: &logrus.TextFormatter{
