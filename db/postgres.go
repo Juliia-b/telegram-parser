@@ -17,24 +17,12 @@ import (
 type PostgresClient struct {
 	Connection  *sql.DB
 	DbInfo      *DbInfo
-	SchemaInfo  *Schema
 	TimePeriods *TimePeriods
 }
 
 type DbInfo struct {
 	DbName    string
 	TableName string
-}
-
-type Schema struct {
-	MessageID string
-	ChatID    string
-	ChatTitle string
-	Content   string
-	Date      string
-	Views     string
-	Forwards  string
-	Replies   string
 }
 
 type TimePeriods struct {
@@ -100,7 +88,7 @@ func ConnectToPostgres() (*PostgresClient, error) {
 	}
 
 	//TODO check if it is possible to reduce or simplify the structure PostgresClient
-	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}, SchemaInfo: getSchemaInfo(), TimePeriods: getTimePeriods()}, nil
+	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}, TimePeriods: getTimePeriods()}, nil
 }
 
 // Close closes the connection to the PostgreSQL
@@ -223,20 +211,6 @@ func NewMessage(message *tdlib.Message, chatTitle string) *Message {
 	}
 
 	return m
-}
-
-// getSchemaInfo returns the names of fields in the database schema
-func getSchemaInfo() *Schema {
-	return &Schema{
-		MessageID: "message_id",
-		ChatID:    "chat_id",
-		ChatTitle: "chat_title",
-		Content:   "content",
-		Date:      "date",
-		Views:     "views",
-		Forwards:  "forwards",
-		Replies:   "replies",
-	}
 }
 
 func getTimePeriods() *TimePeriods {

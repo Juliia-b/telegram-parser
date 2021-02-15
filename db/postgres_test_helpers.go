@@ -121,7 +121,6 @@ func postgresTestConnection() (*PostgresClient, error) {
 	return &PostgresClient{
 		Connection:  db,
 		DbInfo:      &DbInfo{dbName, tableName},
-		SchemaInfo:  getSchemaInfo(),
 		TimePeriods: getTimePeriods(),
 	}, nil
 }
