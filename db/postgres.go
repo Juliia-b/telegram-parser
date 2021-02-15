@@ -149,8 +149,8 @@ func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 
 // GetMessagesForATimePeriod returns messages for the selected time period.
 // The list of time intervals is in the structure TimePeriods.
-func (pg *PostgresClient) GetMessagesForATimePeriod(from int64, to int64) ([]*Message, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v;`, pg.DbInfo.TableName, from, to)
+func (pg *PostgresClient) GetMessagesForATimePeriod(from int64, to int64, limit int) ([]*Message, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v ORDER BY views LIMIT %v;`, pg.DbInfo.TableName, from, to, limit)
 
 	rows, err := pg.Connection.Query(sqlStatement)
 	if err != nil {
