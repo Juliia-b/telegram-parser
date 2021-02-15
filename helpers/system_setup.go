@@ -16,7 +16,7 @@ var envs = []env{
 	{"PGPORT", "Port on which postgreSQL is listened."}, // "5432"
 	{"PGUSER", "PostgreSQL user name."},                 // "postgres"
 	{"PGPASSWORD", "Password to access postgreSQL."},    // ***
-	{"PGDBNAME", "PostgreSQL database name."},           // "telegram-parser"
+	{"PGDBNAME", "PostgreSQL database name."},           // "portgres"
 	{"TGTELNUMBER", "Phone number required to connect to the telegram client."},
 	{"TGAPIID", "Application identifier for Telegram API access, which can be obtained at https://my.telegram.org   --- must be non-empty.."},
 	{"TGAPIHASH", "Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org  --- must be non-empty.."},
