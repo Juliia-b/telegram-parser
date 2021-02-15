@@ -29,23 +29,13 @@ type Telegram struct {
 //    --------------------------------------------------------------------------------
 
 // AppInstance returns a structure with connections to all services
-func AppInstance() *App {
+func AppInstance(dbClient db.DB, mqClient *mq.Rabbit) *App {
 	tg := newTgClient()
-
-	dbClient, err := db.ConnectToPostgres()
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	mq, err := mq.RabbitInit()
-	if err != nil {
-		logrus.Panic(err)
-	}
 
 	return &App{
 		Telegram: tg,
 		DbCli:    dbClient,
-		MqCli:    mq,
+		MqCli:    mqClient,
 	}
 }
 

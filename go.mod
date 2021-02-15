@@ -10,6 +10,7 @@ require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-cmp v0.5.4
 	github.com/gorilla/mux v1.8.0
+	github.com/jinzhu/now v1.1.1
 	github.com/lib/pq v1.9.0
 	github.com/ory/dockertest/v3 v3.6.3
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b // indirect
