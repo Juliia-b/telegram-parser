@@ -6,5 +6,5 @@ type DB interface {
 	GetAllData() ([]*Message, error)
 	GetMessageById(chatID int64, messageID int64) (*Message, error)
 	Update(u *UpdateRow) (updateCount int64, err error)
-	GetMessagesForATimePeriod(period string) ([]*Message, error)
+	GetMessagesForATimePeriod(from int64, to int64) ([]*Message, error)
 }

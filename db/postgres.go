@@ -7,7 +7,6 @@ import (
 	"github.com/Arman92/go-tdlib"
 	_ "github.com/lib/pq"
 	"os"
-	"time"
 )
 
 //    --------------------------------------------------------------------------------
@@ -15,23 +14,13 @@ import (
 //    --------------------------------------------------------------------------------
 
 type PostgresClient struct {
-	Connection  *sql.DB
-	DbInfo      *DbInfo
-	TimePeriods *TimePeriods
+	Connection *sql.DB
+	DbInfo     *DbInfo
 }
 
 type DbInfo struct {
 	DbName    string
 	TableName string
-}
-
-type TimePeriods struct {
-	Today              string
-	Yesterday          string
-	DayBeforeYesterday string
-	ThisWeek           string
-	LastWeek           string
-	ThisMonth          string
 }
 
 type Message struct {
@@ -88,7 +77,7 @@ func ConnectToPostgres() (*PostgresClient, error) {
 	}
 
 	//TODO check if it is possible to reduce or simplify the structure PostgresClient
-	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}, TimePeriods: getTimePeriods()}, nil
+	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}}, nil
 }
 
 // Close closes the connection to the PostgreSQL
@@ -159,13 +148,8 @@ func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 }
 
 // GetMessagesForATimePeriod returns messages for the selected time period.
-// The list of time intervals is in the structure TimePeriods in PostgresClient
-func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, error) {
-	from, to, err := dateCalculation(pg, period)
-	if err != nil {
-		return nil, err
-	}
-
+// The list of time intervals is in the structure TimePeriods.
+func (pg *PostgresClient) GetMessagesForATimePeriod(from int64, to int64) ([]*Message, error) {
 	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v;`, pg.DbInfo.TableName, from, to)
 
 	rows, err := pg.Connection.Query(sqlStatement)
@@ -192,7 +176,7 @@ func (pg *PostgresClient) GetMessagesForATimePeriod(period string) ([]*Message, 
 //                                     HELPERS
 //    --------------------------------------------------------------------------------
 
-// NewMessage returns a structure compatible with the database schema
+// NewMessage returns a structure compatible with the database schema.
 func NewMessage(message *tdlib.Message, chatTitle string) *Message {
 	m := &Message{
 		MessageID: message.ID,
@@ -213,18 +197,7 @@ func NewMessage(message *tdlib.Message, chatTitle string) *Message {
 	return m
 }
 
-func getTimePeriods() *TimePeriods {
-	return &TimePeriods{
-		Today:              "today",
-		Yesterday:          "yesterday",
-		DayBeforeYesterday: "daybeforeyesterday",
-		ThisWeek:           "thisweek",
-		LastWeek:           "lastweek",
-		ThisMonth:          "thismonth",
-	}
-}
-
-// scan scans row data into *Message
+// scan scans row data into *Message.
 func scan(row *sql.Rows) (*Message, error) {
 	m := &Message{}
 
@@ -232,36 +205,6 @@ func scan(row *sql.Rows) (*Message, error) {
 		return nil, err
 	}
 	return m, nil
-}
-
-func dateCalculation(pg *PostgresClient, period string) (from int64, to int64, err error) {
-	p := pg.TimePeriods
-
-	// TODO уточнить временные периоды
-	switch period {
-	case p.Today:
-		from = time.Now().AddDate(0, 0, -1).Unix()
-		to = time.Now().Unix()
-	case p.Yesterday:
-		from = time.Now().AddDate(0, 0, -2).Unix()
-		to = time.Now().AddDate(0, 0, -1).Unix()
-	case p.DayBeforeYesterday:
-		from = time.Now().AddDate(0, 0, -3).Unix()
-		to = time.Now().AddDate(0, 0, -2).Unix()
-	case p.ThisWeek:
-		from = time.Now().AddDate(0, 0, -7).Unix()
-		to = time.Now().Unix()
-	case p.LastWeek:
-		from = time.Now().AddDate(0, 0, -14).Unix()
-		to = time.Now().AddDate(0, 0, -7).Unix()
-	case p.ThisMonth:
-		from = time.Now().AddDate(0, -1, 0).Unix()
-		to = time.Now().Unix()
-	default:
-		err = errors.New(fmt.Sprintf("unknown time period %v", period))
-	}
-
-	return from, to, err
 }
 
 //    --------------------------------------------------------------------------------

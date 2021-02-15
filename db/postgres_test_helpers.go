@@ -119,9 +119,8 @@ func postgresTestConnection() (*PostgresClient, error) {
 	}
 
 	return &PostgresClient{
-		Connection:  db,
-		DbInfo:      &DbInfo{dbName, tableName},
-		TimePeriods: getTimePeriods(),
+		Connection: db,
+		DbInfo:     &DbInfo{dbName, tableName},
 	}, nil
 }
 
