@@ -4,35 +4,29 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"telegram-parser/db"
-	"time"
 )
 
-type Router struct {
+type Server struct {
 	router *mux.Router
-	server *http.Server
+	Server *http.Server
 }
 
-func RouterInit(dbCli db.DB) *Router {
+func RouterInit(dbCli db.DB) *Server {
 	var r = mux.NewRouter()
 
 	h := &handler{dbCli: dbCli}
 
-	r.HandleFunc("/max/{period}", h.GetMaxInPeriod).Methods("GET")
-	r.HandleFunc("/min/{period}", h.GetMinInPeriod).Methods("GET")
+	r.HandleFunc("/best", h.GetBestInPeriod).Methods("GET").Queries("period", "{period}")
 
 	srv := &http.Server{
-		Handler:      r,
-		Addr:         "127.0.0.1:8000",
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		Handler: r,
+		Addr:    "127.0.0.1:8000",
+		//WriteTimeout: 15 * time.Second,
+		//ReadTimeout:  15 * time.Second,
 	}
 
-	return &Router{
+	return &Server{
 		router: r,
-		server: srv,
+		Server: srv,
 	}
-}
-
-func (r *Router) ListenAndServe() error {
-	return r.server.ListenAndServe()
 }

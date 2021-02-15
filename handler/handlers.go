@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/jinzhu/now"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"telegram-parser/db"
 	"time"
@@ -30,22 +32,41 @@ type timePeriods struct {
 //                                     METHODS
 //    --------------------------------------------------------------------------------
 
-func (h *handler) GetMinInPeriod(w http.ResponseWriter, r *http.Request) {
-	//vars := mux.Vars(r)
-
-}
-
-func (h *handler) GetMaxInPeriod(w http.ResponseWriter, r *http.Request) {
-	//vars := mux.Vars(r)
-	//h.dbCli.GetMessagesForATimePeriod()
-
-}
-
-//func ArticlesCategoryHandler(w http.ResponseWriter, router *http.Request) {
-//	vars := mux.Vars(router)
-//	w.WriteHeader(http.StatusOK)
-//	fmt.Fprintf(w, "Category: %v\n", vars["category"])
+//func (h *handler) GetWorstInPeriod(w http.ResponseWriter, r *http.Request) {
+//	//vars := mux.Vars(r)
+//
 //}
+
+func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
+	var limit int = 50
+	period := r.FormValue("period")
+
+	logrus.Infof("Period : %v ; Limit : %v\n", period, limit)
+
+	from, to, err := dateCalculation(period)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("\nPeriod is not valid.\n\n"))
+		return
+	}
+
+	messages, err := h.dbCli.GetMessagesForATimePeriod(from, to, limit)
+	if err != nil {
+		w.WriteHeader(http.StatusNotImplemented)
+		w.Write([]byte("\nSomething went wrong.\n\n"))
+		return
+	}
+
+	payload, err := json.Marshal(messages)
+	if err != nil {
+		w.WriteHeader(http.StatusNotImplemented)
+		w.Write([]byte(fmt.Sprintf("\nSomething went wrong with error %v.\n\n", err.Error())))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(payload)
+}
 
 //    --------------------------------------------------------------------------------
 //                                     HELPERS

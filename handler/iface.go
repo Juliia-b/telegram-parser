@@ -1,5 +1,5 @@
 package handler
 
-//type Router interface {
+//type Server interface {
 //	ListenAndServe() error
 //}
