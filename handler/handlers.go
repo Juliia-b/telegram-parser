@@ -26,6 +26,7 @@ type timePeriods struct {
 	ThisWeek           string
 	LastWeek           string
 	ThisMonth          string
+	Whole              string // Denotes the entire period from 1970-01-01T00: 00: 00Z to the present
 }
 
 //    --------------------------------------------------------------------------------
@@ -80,6 +81,7 @@ func getTimePeriods() *timePeriods {
 		ThisWeek:           "thisweek",
 		LastWeek:           "lastweek",
 		ThisMonth:          "thismonth",
+		Whole:              "whole",
 	}
 }
 
@@ -114,6 +116,9 @@ func dateCalculation(period string) (from int64, to int64, err error) {
 	case p.ThisMonth:
 		from = conf.With(t).BeginningOfMonth().Unix()
 		to = conf.With(t).EndOfMonth().Unix()
+	case p.Whole:
+		from = 0
+		to = t.Unix()
 	default:
 		err = errors.New(fmt.Sprintf("unknown time period %v", period))
 	}
