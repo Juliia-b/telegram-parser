@@ -3,55 +3,57 @@ package main
 import (
 	"github.com/Arman92/go-tdlib"
 	"github.com/sirupsen/logrus"
-	"telegram-parser/app"
 	"telegram-parser/db"
-	"telegram-parser/flags"
-	"telegram-parser/grpc_client"
-	"telegram-parser/handling"
+	"telegram-parser/handler"
 	"telegram-parser/helpers"
 	"telegram-parser/mq"
+	"telegram-parser/parser"
 )
 
 func main() {
-	// System Setup
-	helpers.CheckENV()
+	//System Setup
 	helpers.ConfigureLogrus()
-
-	// инициализация канала для новых адресов нод
-	serviceAddresses := make(chan string)
-	// инициализация структуры подключения к клиентам сервиса парсинга
-	serviceConnections := grpc_client.NewParserConnections()
-
-	// база
-	postgresClient, err := db.ConnectToPostgres()
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	// очередь сообщений
-	mq, err := mq.RabbitInit()
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	// структура общего назначения с доступом к базе, брокеру сообщений, подключения к клиентам сервиса и информации о состоянии консистентного хеша
-	handle := handling.NewHandleStruct(serviceConnections, postgresClient, mq)
-
-	// пытается подключиться ко всем адресам в списке
-	go handle.HandleNewServiceAddresses(serviceAddresses)
-	// парсит флаги. в случае если аргумент является ipv4 адресом он отправляется в канал serviceAddresses
-	flags.ParseFlags(serviceAddresses)
-
-	// запуск консьюмера очереди для получения сообщений и их обработки ( нахождение адреса ноды для отправки, отправка)
-	handle.RunHandlingMsgsFromMQ(20)
+	helpers.CheckEnv()
 
 	tdlib.SetLogVerbosityLevel(1)
 	tdlib.SetFilePath("./errors.txt")
+	//
+	dbClient, err := db.ConnectToPostgres()
+	if err != nil {
+		logrus.Panic(err)
+	}
 
-	telegramCli := app.NewTgClient()
-	telegramCli.Authorization()
+	mqClient, err := mq.RabbitInit()
+	if err != nil {
+		logrus.Panic(err)
+	}
 
-	go telegramCli.GetUpdates(handle.Rabbit)
+	app := parser.AppInstance(dbClient, mqClient)
+	app.TelegramAuthorization()
+
+	//chats, err := app.Telegram.GetChatList(5000)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//for _, chat := range chats {
+	//	logrus.Infof("TITLE: %v\nCHAT TYPE: %v\nCAN GET STATISTICS: %v\n----------------------------\n", chat.Title, chat.Type.GetChatTypeEnum(), chat.LastMessage.CanGetStatistics)
+	//}
+
+	// TODO убрать из списка выдачи лучших записей все у которых значения стоят на 0 (просмотры) или 1
+
+	// Run handling updates from Telegram
+	go app.GetUpdates()
+
+	// Run
+	app.StartTrackingStatistics(50)
+
+	// -------------
+
+	r := handler.RouterInit(dbClient)
+
+	logrus.Info("Server is running on ", r.Server.Addr)
+	logrus.Panic(r.Server.ListenAndServe())
 
 	forever := make(chan bool)
 	<-forever

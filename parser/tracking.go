@@ -21,6 +21,9 @@ func (a *App) StartTrackingStatistics(handlersCount int) {
 	for i := 0; i < handlersCount; i++ {
 		go a.trackingStatistics(&now)
 	}
+
+	logrus.Infof("Launched %v goroutines to track statistics.", handlersCount)
+
 }
 
 // trackingStatistics starts continuous tracking of message statistics.
@@ -32,8 +35,6 @@ func (a *App) trackingStatistics(stopTime *int64) {
 	for update := range mqCli.Consume() {
 		mqMsg := mq.UnmarshalRabbitBody(update.Body)
 
-		//logrus.Infof("Получено сообщение с id %v из rabbit \n\n", mqMsg.MessageID)
-
 		// check if the message has expired
 		if mqMsg.Date <= *stopTime {
 			// message expired so we remove the message from the parser queue
@@ -44,23 +45,28 @@ func (a *App) trackingStatistics(stopTime *int64) {
 		// ask the Telegram for up-to-date information about the message
 		tgMsg, err := tgCli.GetMessage(mqMsg.ChatID, mqMsg.MessageID)
 		if err != nil {
-			update.Nack(false, false)
-			logrus.Errorf("Failed to receive message with chatID = %v and messageID = %v with error = `%v`. Message passed to message queue.", mqMsg.ChatID, mqMsg.MessageID, err.Error())
+			//logrus.Errorf("Failed to receive message with chatID = %v and messageID = %v with error = `%v`. Message passed to message queue.", mqMsg.ChatID, mqMsg.MessageID, err.Error())
+
+			update.Ack(false)
+			publishMessage(mqCli, mqMsg)
 			continue
 		}
 
 		// checking the validity of the message content
 		if tgMsg.Content.GetMessageContentEnum() != "messageText" {
-			update.Ack(false)
 			logrus.Warnf("The content of the message with messageID = %v is no longer text. The message is removed from the parser queue.", tgMsg.ID)
+
+			update.Ack(false)
 			continue
 		}
 
 		// request information about the chat from the telegram
 		chat, err := tgCli.GetChat(mqMsg.ChatID)
 		if err != nil {
-			update.Nack(false, false)
 			logrus.Errorf("Failed to receive chat with chatID = %v with error = `%v`. Message passed to message queue.", mqMsg.ChatID, err.Error())
+
+			update.Ack(false)
+			publishMessage(mqCli, mqMsg)
 			continue
 		}
 
@@ -71,7 +77,8 @@ func (a *App) trackingStatistics(stopTime *int64) {
 		updates, hasUpdates := compareMessages(mqMsg, updatedMsg)
 		if !hasUpdates {
 			// no updates available
-			update.Nack(false, false)
+			update.Ack(false)
+			publishMessage(mqCli, mqMsg)
 			continue
 		}
 
@@ -79,7 +86,9 @@ func (a *App) trackingStatistics(stopTime *int64) {
 		updateCount, err := dbCli.Update(updates)
 		if err != nil {
 			logrus.Errorf("Failed to update db row with chatID = %v and messageID = %v with error = `%v`. Message passed to message queue.", mqMsg.ChatID, mqMsg.MessageID, err.Error())
-			update.Nack(false, false)
+
+			update.Ack(false)
+			publishMessage(mqCli, mqMsg)
 			continue
 		}
 
@@ -93,16 +102,23 @@ func (a *App) trackingStatistics(stopTime *int64) {
 		//  2. get a satisfactory structure
 		msg := convertUpdateRawToMessage(updates)
 		//	3. add the updated message to the queue
-		err = mqCli.Publish(msg)
-		if err != nil {
-			logrus.Fatalf("Failed to send message with chatID = %v and messageID = %v to message queue with error = `%v`.", msg.ChatID, msg.MessageID, err.Error())
-		}
+		publishMessage(mqCli, msg)
+
+		//logrus.Infof("Title : %v ; id : %v \nMESSAGE DONE AND PUBLISH TO MQ\n", mqMsg.ChatTitle, mqMsg.MessageID)
 	}
 }
 
 //    --------------------------------------------------------------------------------
 //                                     HELPERS
 //    --------------------------------------------------------------------------------
+
+//
+func publishMessage(mqCli *mq.Rabbit, msg *db.Message) {
+	err := mqCli.Publish(msg)
+	if err != nil {
+		logrus.Panic(err)
+	}
+}
 
 // maxMsgTime updates the maximum message creation time once a day (maximum message age is a month).
 func maxMsgTime(t *int64) {

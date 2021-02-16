@@ -124,6 +124,8 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 
 	for update := range rawUpdates {
 
+		logrus.Infof("GET NEW messageReview")
+
 		var updateLastMessage tdlib.UpdateChatLastMessage
 		err := json.Unmarshal(update.Raw, &updateLastMessage)
 		if err != nil {
@@ -131,10 +133,17 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 		}
 
 		if updateLastMessage.Type != "updateChatLastMessage" {
+			//logrus.Info("Not type updateChatLastMessage")
 			continue
 		}
 
-		if !updateLastMessage.LastMessage.CanGetStatistics {
+		if updateLastMessage.LastMessage == nil {
+			logrus.Error("updateLastMessage have not LastMessage")
+			continue
+		}
+
+		if updateLastMessage.LastMessage.Content.GetMessageContentEnum() != "messageText" {
+			logrus.Info("Content is not text")
 			continue
 		}
 
@@ -144,11 +153,8 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 		}
 
 		// Убрано на время тестирования
-		//if chat.Type.GetChatTypeEnum() != "chatTypeSupergroup" {
-		//	continue
-		//}
-
-		if updateLastMessage.LastMessage.Content.GetMessageContentEnum() != "messageText" {
+		if chat.Type.GetChatTypeEnum() != "chatTypeSupergroup" {
+			logrus.Warnf("Chat %v is not super group. It is %v\n", chat.Title, chat.Type.GetChatTypeEnum())
 			continue
 		}
 
@@ -167,3 +173,46 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 		logrus.Infof("Сообщение с id %v передано в rabbit\n", m.MessageID)
 	}
 }
+
+// extra
+
+///*GetChatList Returns an ordered list of chats in a chat list. Chats are sorted by the pair (chat.position.order, chat.id) in descending order. @param limit The maximum number of chats to be returned. It is possible that fewer chats than the limit are returned even if the end of the list is not reached
+// */
+//func (t *Telegram) GetChatList(limit int) ([]*tdlib.Chat, error) {
+//	var allChats []*tdlib.Chat
+//	var offsetOrder = int64(math.MaxInt64)
+//	var offsetChatID = int64(0)
+//	var chatList = tdlib.NewChatListMain()
+//	var lastChat *tdlib.Chat
+//
+//	for len(allChats) < limit {
+//		if len(allChats) > 0 {
+//			lastChat = allChats[len(allChats)-1]
+//			for i := 0; i < len(lastChat.Positions); i++ {
+//				//Find the main chat list
+//				if lastChat.Positions[i].List.GetChatListEnum() == tdlib.ChatListMainType {
+//					offsetOrder = int64(lastChat.Positions[i].Order)
+//				}
+//			}
+//			offsetChatID = lastChat.ID
+//		}
+//
+//		var chats, err = t.Client.GetChats(chatList, tdlib.JSONInt64(offsetOrder),
+//			offsetChatID, int32(limit-len(allChats)))
+//		if err != nil {
+//			return nil, err
+//		}
+//		if len(chats.ChatIDs) == 0 {
+//			return allChats, nil
+//		}
+//
+//		for _, chatID := range chats.ChatIDs {
+//			chat, err := t.Client.GetChat(chatID)
+//			if err != nil {
+//				return nil, err
+//			}
+//			allChats = append(allChats, chat)
+//		}
+//	}
+//	return allChats, nil
+//}
