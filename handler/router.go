@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"telegram-parser/db"
+	"time"
 )
 
 type Server struct {
@@ -20,10 +21,10 @@ func ServerInit(dbCli db.DB) *Server {
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
 
 	srv := &http.Server{
-		Handler: r,
-		Addr:    "127.0.0.1:8000",
-		//WriteTimeout: 15 * time.Second,
-		//ReadTimeout:  15 * time.Second,
+		Handler:      r,
+		Addr:         "127.0.0.1:8000",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
 	}
 
 	return &Server{
