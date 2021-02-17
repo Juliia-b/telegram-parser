@@ -33,7 +33,7 @@ func CheckEnv() {
 	}
 }
 
-// ConfigureLogrus
+// ConfigureLogrus minimally configures logrus.
 func ConfigureLogrus() {
 	formatter := runtime.Formatter{
 		ChildFormatter: &logrus.TextFormatter{
