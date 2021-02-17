@@ -31,7 +31,7 @@ async function getBestInPeriod(btnEl, period) {
         return
     }
 
-    //
+    // checks if fields from and to came to return an error to the user
     if (typeof posts.from !== 'undefined' || typeof posts.to !== 'undefined') {
         let f = timeConverter(posts.from)
         let t = timeConverter(posts.to)
