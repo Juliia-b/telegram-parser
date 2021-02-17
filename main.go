@@ -48,9 +48,7 @@ func main() {
 	// Run
 	app.StartTrackingStatistics(50)
 
-	// -------------
-
-	r := handler.RouterInit(dbClient)
+	r := handler.ServerInit(dbClient)
 
 	logrus.Info("Server is running on ", r.Server.Addr)
 	logrus.Panic(r.Server.ListenAndServe())

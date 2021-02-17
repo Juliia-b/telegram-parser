@@ -11,7 +11,7 @@ type Server struct {
 	Server *http.Server
 }
 
-func RouterInit(dbCli db.DB) *Server {
+func ServerInit(dbCli db.DB) *Server {
 	var r = mux.NewRouter()
 
 	h := &handler{dbCli: dbCli}
