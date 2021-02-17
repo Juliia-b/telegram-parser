@@ -5,8 +5,13 @@ body {
     background-color: white;
 }
 
+.results {
+    width: 70%;
+    margin: auto;
+}
+
 .no-data {
-    margin-left: 2%;
+    margin-left: 16.6%;
 }
 
 .btn-group {
