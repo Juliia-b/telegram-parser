@@ -2,8 +2,10 @@ package mq
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
+	"os"
 	"telegram-parser/db"
 )
 
@@ -23,7 +25,7 @@ type Rabbit struct {
 
 // RabbitInit returns a message broker instance with the required queue connections.
 func RabbitInit() (*Rabbit, error) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://guest:guest@localhost:%v/", os.Getenv("RABBITPORT")))
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ type env struct {
 }
 
 var envs = []env{
+	{"RABBITPORT", "Port on which rabbitMQ is listened."},
 	{"PGHOST", "Host on which postgreSQL is listened."}, // "localhost"
 	{"PGPORT", "Port on which postgreSQL is listened."}, // "5432"
 	{"PGUSER", "PostgreSQL user name."},                 // "postgres"
