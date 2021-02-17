@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/now"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"telegram-parser/db"
 	"time"
@@ -33,38 +32,48 @@ type timePeriods struct {
 //                                     METHODS
 //    --------------------------------------------------------------------------------
 
-//func (h *handler) GetWorstInPeriod(w http.ResponseWriter, r *http.Request) {
-//	//vars := mux.Vars(r)
-//
-//}
-
+// GetBestInPeriod returns the best posts for the specified period. Limit is 50. Less can be returned.
 func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
-	var limit int = 50
-	period := r.FormValue("period")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	logrus.Infof("Period : %v ; Limit : %v\n", period, limit)
+	var limit = 50
+	var period = r.FormValue("period")
 
 	from, to, err := dateCalculation(period)
 	if err != nil {
+		// Period is not valid
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("\nPeriod is not valid.\n\n"))
 		return
 	}
 
 	messages, err := h.dbCli.GetMessagesForATimePeriod(from, to, limit)
 	if err != nil {
 		w.WriteHeader(http.StatusNotImplemented)
-		w.Write([]byte("\nSomething went wrong.\n\n"))
+		return
+	}
+
+	if len(messages) == 0 {
+		v := map[string]int64{"from": from, "to": to}
+
+		payload, err := json.Marshal(v)
+		if err != nil {
+			w.WriteHeader(http.StatusNotImplemented)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(payload)
 		return
 	}
 
 	payload, err := json.Marshal(messages)
 	if err != nil {
 		w.WriteHeader(http.StatusNotImplemented)
-		w.Write([]byte(fmt.Sprintf("\nSomething went wrong with error %v.\n\n", err.Error())))
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(payload)
 }
@@ -73,6 +82,7 @@ func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
 //                                     HELPERS
 //    --------------------------------------------------------------------------------
 
+// getTimePeriods returns a structure with constant names of periods.
 func getTimePeriods() *timePeriods {
 	return &timePeriods{
 		Today:              "today",
