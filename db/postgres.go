@@ -76,7 +76,7 @@ func ConnectToPostgres() (*PostgresClient, error) {
 		return nil, errors.New("table connection error")
 	}
 
-	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}}, nil
+	return &PostgresClient{Connection: db, DbInfo: &DbInfo{os.Getenv("PGDBNAME"), tableName}}, nil
 }
 
 // Close closes the connection to the PostgreSQL
