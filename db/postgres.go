@@ -24,14 +24,14 @@ type DbInfo struct {
 }
 
 type Message struct {
-	MessageID int64
-	ChatID    int64
-	Date      int64
-	ChatTitle string
-	Content   string
-	Views     int32
-	Forwards  int32
-	Replies   int32
+	MessageID int64  `json:"messageid"`
+	ChatID    int64  `json:"chatid"`
+	Date      int64  `json:"date"`
+	ChatTitle string `json:"chattitle"`
+	Content   string `json:"content"`
+	Views     int32  `json:"views"`
+	Forwards  int32  `json:"forwards"`
+	Replies   int32  `json:"replies"`
 }
 
 type UpdateRow struct {
