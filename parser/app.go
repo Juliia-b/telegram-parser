@@ -6,6 +6,7 @@ import (
 	"github.com/Arman92/go-tdlib"
 	"github.com/sirupsen/logrus"
 	"os"
+	"sync"
 	"telegram-parser/db"
 	"telegram-parser/mq"
 )
@@ -64,7 +65,7 @@ func newTgClient() *Telegram {
 }
 
 // TelegramAuthorization is used to authorize the user
-func (a *App) TelegramAuthorization() {
+func (a *App) TelegramAuthorization(wg *sync.WaitGroup) {
 	tgCli := a.Telegram.Client
 
 	for {
@@ -93,6 +94,7 @@ func (a *App) TelegramAuthorization() {
 			}
 		case tdlib.AuthorizationStateReadyType:
 			logrus.Info("TelegramAuthorization Ready.\n")
+			wg.Done()
 			return
 		}
 	}

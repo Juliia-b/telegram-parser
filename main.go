@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Arman92/go-tdlib"
 	"github.com/sirupsen/logrus"
+	"sync"
 	"telegram-parser/db"
 	"telegram-parser/handler"
 	"telegram-parser/helpers"
@@ -29,7 +30,11 @@ func main() {
 	}
 
 	app := parser.AppInstance(dbClient, mqClient)
-	app.TelegramAuthorization()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	app.TelegramAuthorization(&wg)
+	wg.Wait()
 
 	// Run handling updates from Telegram
 	go app.GetUpdates()
