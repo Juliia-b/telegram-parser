@@ -23,6 +23,7 @@ var envs = []env{
 	{"TGAPIHASH", "Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org  --- must be non-empty.."},
 }
 
+// CheckEnv checks for all required global variables.
 func CheckEnv() {
 	for _, env := range envs {
 		e := os.Getenv(env.name)
@@ -32,6 +33,7 @@ func CheckEnv() {
 	}
 }
 
+// ConfigureLogrus
 func ConfigureLogrus() {
 	formatter := runtime.Formatter{
 		ChildFormatter: &logrus.TextFormatter{
