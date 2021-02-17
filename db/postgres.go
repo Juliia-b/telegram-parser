@@ -76,7 +76,6 @@ func ConnectToPostgres() (*PostgresClient, error) {
 		return nil, errors.New("table connection error")
 	}
 
-	//TODO check if it is possible to reduce or simplify the structure PostgresClient
 	return &PostgresClient{Connection: db, DbInfo: &DbInfo{"postgres", tableName}}, nil
 }
 
@@ -143,7 +142,6 @@ func (pg *PostgresClient) Update(u *UpdateRow) (updateCount int64, err error) {
 	result, err := pg.Connection.Exec(sqlStatement)
 	updateCount, _ = result.RowsAffected()
 
-	//TODO зачем возвращать количество обновленных???
 	return updateCount, err
 }
 
