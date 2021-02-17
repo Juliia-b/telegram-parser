@@ -1,0 +1,58 @@
+body {
+    font-family: 'Fira Sans', sans-serif;
+    font-style: normal;
+    font-size: 18px;
+    background-color: white;
+}
+
+.no-data {
+    margin-left: 2%;
+}
+
+.btn-group {
+    margin-left: 20%;
+}
+
+.btn-group button {
+    background-color: white;
+    border: 1px solid #7d7d90;
+    color: #7d7d90;
+    padding: 10px 24px;
+    cursor: pointer;
+    float: left;
+}
+
+button {
+    border: none;
+    border-right: none;
+    outline: none;
+}
+
+.btn:hover {
+    background-color: #f8f8f9;
+}
+
+.btn.active {
+    background-color: #7d7d90;
+    color: white;
+}
+
+.title {
+    margin-top: 10px;
+}
+
+.content {
+    margin-top: 10px;
+}
+
+.interactions-block {
+    margin-top: 10px;
+}
+
+.interactions {
+    display: inline-block;
+}
+
+.interactions.left {
+    width: 80%;
+}

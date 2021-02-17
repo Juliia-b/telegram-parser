@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache">
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <script src="index.js"></script>
+    <link type="text/css" href="style.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@200&display=swap');
+    </style>
+</head>
+
+<body>
+
+<div class="btn-group">
+    <button type="button" class="btn active" onclick="getBestInPeriod(this,'today')">Today</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'yesterday')">Yesterday</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'daybeforeyesterday')">Day before yesterday</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'thisweek')">This week</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'lastweek')">Last week</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'thismonth')">This month</button>
+    <button type="button" class="btn" onclick="getBestInPeriod(this,'whole')">For all time</button>
+</div>
+
+<br><br>
+
+<div class="no-data">
+
+</div>
+
+<div id="results">
+    <ol>
+        <div v-for="(post, index) in posts" id="result">
+            <li>
+                <div class="title">
+                    {{post.chattitle}}:
+                </div>
+                <div class="content">
+                    {{post.content}}
+                </div>
+                <hr>
+                <div class="interactions-block">
+                    <div class="interactions left">
+                        Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
+                    </div>
+                    <div class="interactions right">{{post.date}}</div>
+                </div>
+                <hr>
+            </li>
+        </div>
+    </ol>
+</div>
+
+</body>
+
+</html>
