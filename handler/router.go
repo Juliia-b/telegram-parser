@@ -17,6 +17,7 @@ func ServerInit(dbCli db.DB) *Server {
 
 	h := &handler{dbCli: dbCli}
 
+	r.HandleFunc("/ws", h.WsInit).Methods("GET")
 	r.HandleFunc("/best", h.GetBestInPeriod).Methods("GET").Queries("period", "{period}")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
 

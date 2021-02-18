@@ -1,5 +1,6 @@
 let results;
 
+// onload initializes object Vue.js, calls function getBestInPeriod with period "today"
 window.onload = function () {
     results = new Vue({
         el: '#results',
@@ -15,6 +16,8 @@ window.onload = function () {
     getBestInPeriod(todayBtn, "today")
 }
 
+// getBestInPeriod requests the server for the best posts for a period, processes the server's response,
+// adjusts the addition and removal of the "active" class from the buttons of periods.
 async function getBestInPeriod(btnEl, period) {
     let noDataEl = document.getElementsByClassName("no-data")[0];
     let posts;
@@ -42,6 +45,7 @@ async function getBestInPeriod(btnEl, period) {
         return
     }
 
+    // converting unix time to string interpretation
     for (let i = 0; i < posts.length; i++) {
         let unixTime = posts[i].date
         let time = timeConverter(unixTime)
@@ -49,10 +53,10 @@ async function getBestInPeriod(btnEl, period) {
     }
 
     noDataEl.innerText = ""
-
     results.posts = posts
 }
 
+// rmActiveClassFromBtns removes the class "active" from all buttons for receiving posts for the period.
 function rmActiveClassFromBtns() {
     let activeBtns = document.getElementsByClassName("btn active");
 
@@ -61,10 +65,12 @@ function rmActiveClassFromBtns() {
     }
 }
 
+// setButtonToActive adds the class "active" in the button for selecting the period
 function setButtonToActive(button) {
     button.className += " active";
 }
 
+// converts unix time to string like "date month year hour:min:sec".  EX. 17 Feb 2021 18:38:10.
 function timeConverter(UNIX_timestamp) {
     let a = new Date(UNIX_timestamp * 1000);
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -90,3 +96,55 @@ function timeConverter(UNIX_timestamp) {
     let time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
     return time;
 }
+
+
+//  ----------------------- WEBSOCKET -----------------------
+
+let socket = new WebSocket("ws://" + document.location.host + "/ws");
+
+socket.onopen = function () {
+    console.log("Соединение установлено.")
+
+    // let uJson = `{"cookie": "${getCookie()}" , "user" : {"id" : "${userId}", "nickname" : "${userNickname}"}}`
+    // console.log("send cookie : ", uJson)
+    //
+    // // TODO в send отправлять cookie для проверки валидности токена, только после этого устанавливать связь
+    // socket.send(uJson)
+    // console.log("Send first JSON ok")
+};
+
+socket.onmessage = function (event) {
+    console.log("Получены данные " + event.data);
+    // TODO обрабатывать полученные данные
+};
+
+socket.onerror = function (error) {
+    console.log("Ошибка " + error.message);
+};
+
+socket.onclose = function (event) {
+    if (event.wasClean) {
+        console.log('Соединение закрыто чисто');
+    } else {
+        console.log('Обрыв соединения'); // например, "убит" процесс сервера
+    }
+    console.log('Код: ' + event.code + ' причина: ' + event.reason);
+};
+
+// -------------------------------- messenger example --------------------------------
+
+// function getCookie() {
+//     let split = document.cookie.split(";")
+//     let cookie
+//
+//     for (let i = 0; i < split.length; i++) {
+//         if (split[i].includes("jwt=")) {
+//
+//             let str = split[i]
+//             cookie = str.split("=")
+//             return cookie[1]
+//         }
+//     }
+//
+//     return ""
+// }
