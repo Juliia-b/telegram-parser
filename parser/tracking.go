@@ -83,7 +83,7 @@ func (a *App) trackingStatistics(stopTime *int64) {
 		}
 
 		// update table fields
-		updateCount, err := dbCli.Update(updates)
+		updateCount, err := dbCli.UpdateMessage(updates)
 		if err != nil {
 			logrus.Errorf("Failed to update db row with chatID = %v and messageID = %v with error = `%v`. Message passed to message queue.", mqMsg.ChatID, mqMsg.MessageID, err.Error())
 
@@ -108,9 +108,7 @@ func (a *App) trackingStatistics(stopTime *int64) {
 	}
 }
 
-//    --------------------------------------------------------------------------------
-//                                     HELPERS
-//    --------------------------------------------------------------------------------
+/*-----------------------------------HELPERS-----------------------------------------*/
 
 //
 func publishMessage(mqCli *mq.Rabbit, msg *db.Message) {

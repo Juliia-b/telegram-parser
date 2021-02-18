@@ -11,9 +11,7 @@ import (
 	"telegram-parser/mq"
 )
 
-//    --------------------------------------------------------------------------------
-//                                  STRUCTURES
-//    --------------------------------------------------------------------------------
+/*---------------------------------STRUCTURES----------------------------------------*/
 
 type App struct {
 	Telegram *Telegram
@@ -25,9 +23,7 @@ type Telegram struct {
 	Client *tdlib.Client // Telegram.org client
 }
 
-//    --------------------------------------------------------------------------------
-//                                     METHODS
-//    --------------------------------------------------------------------------------
+/*-----------------------------------METHODS-----------------------------------------*/
 
 // AppInstance returns a structure with connections to all services
 func AppInstance(dbClient db.DB, mqClient *mq.Rabbit) *App {
@@ -162,7 +158,7 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 
 		m := db.NewMessage(updateLastMessage.LastMessage, chat.Title)
 
-		err = dbConn.Insert(m)
+		err = dbConn.InsertMessage(m)
 		if err != nil {
 			logrus.Error(err)
 		}

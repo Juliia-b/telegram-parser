@@ -10,9 +10,7 @@ import (
 	"time"
 )
 
-//    --------------------------------------------------------------------------------
-//                                  STRUCTURES
-//    --------------------------------------------------------------------------------
+/*---------------------------------STRUCTURES----------------------------------------*/
 
 type handler struct {
 	dbCli db.DB
@@ -28,9 +26,7 @@ type timePeriods struct {
 	Whole              string // Denotes the entire period from 1970-01-01T00: 00: 00Z to the present
 }
 
-//    --------------------------------------------------------------------------------
-//                                     METHODS
-//    --------------------------------------------------------------------------------
+/*-----------------------------------METHODS-----------------------------------------*/
 
 // GetBestInPeriod returns the best posts for the specified period. Limit is 50. Less can be returned.
 func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +43,7 @@ func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := h.dbCli.GetMessagesForATimePeriod(from, to, limit)
+	messages, err := h.dbCli.GetMessageWithPeriod(from, to, limit)
 	if err != nil {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
@@ -78,9 +74,7 @@ func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
 	w.Write(payload)
 }
 
-//    --------------------------------------------------------------------------------
-//                                     HELPERS
-//    --------------------------------------------------------------------------------
+/*-----------------------------------HELPERS-----------------------------------------*/
 
 // getTimePeriods returns a structure with constant names of periods.
 func getTimePeriods() *timePeriods {
