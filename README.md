@@ -15,7 +15,7 @@ UI is available on port 8000.
    - PGPORT - Port on which postgreSQL is listened.
    - PGUSER - PostgreSQL user name.
    - PGPASSWORD - Password to access postgreSQL.
-   - PGDBNAME - PostgreSQL database name.
+   - PGDBNAME - PostgreSQL database name.            DEPRECATE
    - TGTELNUMBER - Phone number required to connect to the telegram client.
    - TGAPIID - Application identifier for Telegram API access, which can be obtained at https://my.telegram.org.
    - TGAPIHASH - Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org.
