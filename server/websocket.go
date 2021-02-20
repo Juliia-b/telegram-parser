@@ -42,21 +42,22 @@ func (h *handler) UpgradeToWs(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeMsg sends a message to the client on the websocket.
-func writeMsg(ws *websocket.Conn, message []byte) {
+func writeMsg(ws *websocket.Conn, message []byte) (err error) {
 	if err := ws.WriteMessage(websocket.TextMessage, message); err != nil {
-		logrus.Error(err)
-		return
+		return err
 	}
+	return nil
 }
 
 // readMsg reads a message from a client received via a websocket.
 func readMsg(ws *websocket.Conn) error {
 	_, msg, err := ws.ReadMessage()
 	if err != nil {
+		//logrus.Errorf("Failed to read message from a websocket connection with error 'v'.", err.Error())  убрать отсюда
 		return err
 	}
 
-	msg = msg
+	logrus.Infof("Received new msg from ws : '%v'.", string(msg))
 
 	//var ui userIdentity
 	//if err := json.Unmarshal(msg, &ui); err != nil {
@@ -83,6 +84,8 @@ func (w *ws) delete(wsConn *websocket.Conn) {
 	delete(w.connections, wsConn)
 	w.rwMutex.Unlock()
 }
+
+//
 
 // DEPRECATE
 // getVal returns a websocket connection to the user by his cookie.

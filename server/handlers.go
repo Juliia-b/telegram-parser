@@ -16,9 +16,9 @@ import (
 /*---------------------------------STRUCTURES----------------------------------------*/
 
 type handler struct {
-	dbCli      db.DB
-	ws         *ws
-	CookieName string
+	dbCli db.DB
+	ws    *ws
+	//CookieName string
 }
 
 type timePeriods struct {
@@ -32,6 +32,19 @@ type timePeriods struct {
 }
 
 /*-----------------------------------METHODS-----------------------------------------*/
+
+// handlerInit initializes structure handler.
+func handlerInit(dbCli db.DB) *handler {
+	var wsConn = make(map[*websocket.Conn]int)
+	return &handler{
+		dbCli: dbCli,
+		ws: &ws{
+			connections: wsConn,
+			rwMutex:     &sync.RWMutex{},
+		},
+		//CookieName: "u.v1",
+	}
+}
 
 // getBestInPeriod returns the best posts for the specified period. Limit is 50. Less can be returned.
 func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
@@ -106,20 +119,37 @@ func (h *handler) getMsgsFromTop3Hour(w http.ResponseWriter, r *http.Request) {
 	w.Write(payload)
 }
 
-/*-----------------------------------HELPERS-----------------------------------------*/
+// TrackTop3HourTable every 3 minutes sends data from table A to active clients via the websocket.
+func (h *handler) TrackTop3HourTable() {
+	var tickerPeriod = 3 * time.Minute
 
-// handlerInit initializes structure handler.
-func handlerInit(dbCli db.DB) *handler {
-	var wsConn = make(map[*websocket.Conn]int)
-	return &handler{
-		dbCli: dbCli,
-		ws: &ws{
-			connections: wsConn,
-			rwMutex:     &sync.RWMutex{},
-		},
-		CookieName: "u.v1",
-	}
+	ticker := time.NewTicker(tickerPeriod)
+
+	go func() {
+		for {
+			<-ticker.C
+
+			posts, err := h.dbCli.GetAllTop3hour()
+			if err != nil {
+				logrus.Errorf("Failed to get data from table 'top_3_hour' with error '%v'.", err.Error())
+				continue
+			}
+
+			payload, err := json.Marshal(posts)
+			if err != nil {
+				logrus.Errorf("Failed to encode value '%#v' with error '%v'.", posts, err.Error())
+				continue
+			}
+
+			for wsConn, _ := range h.ws.connections {
+				err = writeMsg(wsConn, payload)
+				logrus.Errorf("Failed to write message using a websocket connection with error 'v'.", err.Error())
+			}
+		}
+	}()
 }
+
+/*-----------------------------------HELPERS-----------------------------------------*/
 
 // getTimePeriods returns a structure with constant names of periods.
 func getTimePeriods() *timePeriods {

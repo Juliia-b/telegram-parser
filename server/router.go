@@ -16,7 +16,10 @@ func Init(dbCli db.DB) *Server {
 	var r = mux.NewRouter()
 	var h = handlerInit(dbCli)
 
-	//r.HandleFunc("/ws", h.UpgradeToWs).Methods("GET")
+	// run the update handler in database "top_3_hour"
+	h.TrackTop3HourTable()
+
+	r.HandleFunc("/ws", h.UpgradeToWs).Methods("GET")
 	r.HandleFunc("/best", h.getBestInPeriod).Methods("GET").Queries("period", "{period}")
 	r.HandleFunc("/best/3hour", h.getMsgsFromTop3Hour).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
