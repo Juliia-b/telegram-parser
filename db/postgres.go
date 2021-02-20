@@ -56,6 +56,10 @@ func createTables(db *sql.DB) (err error) {
 		return err
 	}
 
+	if err = createTop3hourTable(db); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -74,6 +78,18 @@ func createPostTable(db *sql.DB) (err error) {
 // createClientTable creates table "client" in database.
 func createClientTable(db *sql.DB) (err error) {
 	sqlStatement := `CREATE TABLE IF NOT EXISTS client ( id SERIAL, cookie text  NOT NULL , PRIMARY KEY(id) );`
+
+	_, err = db.Exec(sqlStatement)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// createTop3hourTable creates table "top_3_hour" in database.
+func createTop3hourTable(db *sql.DB) (err error) {
+	sqlStatement := `CREATE TABLE IF NOT EXISTS top_3_hour ( message_id bigint NOT NULL , chat_id bigint NOT NULL , chat_title text NOT NULL , content text NOT NULL , date bigint NOT NULL , views integer NOT NULL , forwards integer NOT NULL , replies integer NOT NULL , link text NOT NULL , UNIQUE(message_id, chat_id) );`
 
 	_, err = db.Exec(sqlStatement)
 	if err != nil {
