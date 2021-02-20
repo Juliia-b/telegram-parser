@@ -197,9 +197,11 @@ func publishMessage(mqCli *mq.Rabbit, msg *db.Message) {
 
 // maxMsgTimeUpdater updates the maximum message creation time once a day (maximum message age is a month).
 func maxMsgTimeUpdater(t *int64) {
+	var tickerPeriod = 24 * time.Hour
+
 	*t = time.Now().AddDate(0, -1, 0).Unix()
 
-	ticker := time.NewTicker(24 * time.Hour)
+	ticker := time.NewTicker(tickerPeriod)
 
 	go func() {
 		for {

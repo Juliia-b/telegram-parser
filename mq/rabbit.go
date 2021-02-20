@@ -99,6 +99,7 @@ func (r *Rabbit) Consume() <-chan amqp.Delivery {
 func marshalMessage(msg *db.Message) []byte {
 	bytes, err := json.Marshal(msg)
 	if err != nil {
+		// TODO убрать панику
 		logrus.Fatal(err)
 	}
 
