@@ -16,11 +16,13 @@ func (a *App) StartTrackingStatistics(handlersCount int) {
 
 	// updates the maximum value of the message date
 	now := time.Now().Unix()
-	maxMsgTime(&now)
+	maxMsgTimeUpdater(&now)
 
 	for i := 0; i < handlersCount; i++ {
 		go a.trackingStatistics(&now)
 	}
+
+	updateTop3HourTable(a.DbCli)
 
 	logrus.Infof("Launched %v goroutines to track statistics.", handlersCount)
 
@@ -135,6 +137,46 @@ func (a *App) trackingStatistics(stopTime *int64) {
 
 /*-----------------------------------HELPERS-----------------------------------------*/
 
+// updateTop3HourTable updates table "top_3_hour" once a three minute.
+func updateTop3HourTable(dbCli db.DB) {
+	var fieldsNumberInTop3Hour = 30 // maximum number of fields in table "top_3_hour"
+	var tickerPeriod = 3 * time.Minute
+
+	ticker := time.NewTicker(tickerPeriod)
+
+	go func() {
+		for {
+			<-ticker.C
+
+			_, err := dbCli.DeleteAllTop3hour()
+			if err != nil {
+				logrus.Errorf("Failed to delete data from table 'top_3_hour' with error '%v'.", err.Error())
+				continue
+			}
+
+			var from = time.Now().Unix()
+			var hour3 = int64(time.Hour.Seconds()) * 3 // number of seconds in three hours
+			var to = from - hour3
+
+			posts, err := dbCli.GetMessageWithPeriod(from, to, fieldsNumberInTop3Hour)
+			if err != nil {
+				logrus.Errorf("Failed to get data from table 'post' with error '%v'.", err.Error())
+				continue
+			}
+
+			for _, post := range posts {
+				err = dbCli.InsertTop3hour(post)
+				if err != nil {
+					// TODO необходимо откатывать предыдущие изменения если не удалось внести
+
+					logrus.Errorf("failed to enter data into table 'top_3_hour' with error '%v'. Post: message id = %v, chat id = %v.", err.Error(), post.MessageID, post.ChatID)
+					continue
+				}
+			}
+		}
+	}()
+}
+
 // isMsgExpired checks if the message has expired.
 func isMsgExpired(message *db.Message, stopTime *int64) (expired bool) {
 	if message.Date <= *stopTime {
@@ -153,8 +195,8 @@ func publishMessage(mqCli *mq.Rabbit, msg *db.Message) {
 	}
 }
 
-// maxMsgTime updates the maximum message creation time once a day (maximum message age is a month).
-func maxMsgTime(t *int64) {
+// maxMsgTimeUpdater updates the maximum message creation time once a day (maximum message age is a month).
+func maxMsgTimeUpdater(t *int64) {
 	*t = time.Now().AddDate(0, -1, 0).Unix()
 
 	ticker := time.NewTicker(24 * time.Hour)
