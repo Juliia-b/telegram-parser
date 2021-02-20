@@ -18,6 +18,7 @@ func Init(dbCli db.DB) *Server {
 
 	//r.HandleFunc("/ws", h.UpgradeToWs).Methods("GET")
 	r.HandleFunc("/best", h.getBestInPeriod).Methods("GET").Queries("period", "{period}")
+	r.HandleFunc("/best/3hour", h.getMsgsFromTop3Hour).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
 	//r.Use(h.sessionMiddleware)
 

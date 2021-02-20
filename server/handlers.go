@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/now"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"sync"
 	"telegram-parser/db"
@@ -36,6 +37,7 @@ type timePeriods struct {
 func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
 
 	var limit = 50
 	var period = r.FormValue("period")
@@ -49,6 +51,7 @@ func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := h.dbCli.GetMessageWithPeriod(from, to, limit)
 	if err != nil {
+		logrus.Errorf("Failed to get posts from table 'post' with error '%v'.", err.Error())
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
@@ -58,23 +61,48 @@ func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 
 		payload, err := json.Marshal(v)
 		if err != nil {
+			logrus.Errorf("Failed to encode value '%#v' with error '%v'.", v, err.Error())
 			w.WriteHeader(http.StatusNotImplemented)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(payload)
 		return
 	}
 
 	payload, err := json.Marshal(messages)
 	if err != nil {
+		logrus.Errorf("Failed to encode value '%#v' with error '%v'.", messages, err.Error())
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(payload)
+}
+
+// getMsgsFromTop3Hour returns all posts from table "top_3_hour" to the client.
+func (h *handler) getMsgsFromTop3Hour(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	posts, err := h.dbCli.GetAllTop3hour()
+	if err != nil {
+		logrus.Errorf("Failed to get data from table 'top_3_hour' with error '%v'.", err.Error())
+		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
+	payload, err := json.Marshal(posts)
+	if err != nil {
+		logrus.Errorf("Failed to encode value '%#v' with error '%v'.", posts, err.Error())
+		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 	w.Write(payload)
 }
 
