@@ -38,7 +38,7 @@ func ConnectToPostgres() *PostgresClient {
 	}
 }
 
-// Close closes the connection to the PostgreSQL.
+// CloseConnection closes the connection to the PostgreSQL.
 func (pg *PostgresClient) CloseConnection() {
 	pg.Connection.Close()
 }
@@ -46,7 +46,7 @@ func (pg *PostgresClient) CloseConnection() {
 /*-----------------------------------HELPERS-----------------------------------------*/
 
 // createTables creates all the necessary tables in the database, if they have not been created yet.
-// Table names: "client" , "post".
+// Table names: "client" , "post", "top_3_hour".
 func createTables(db *sql.DB) (err error) {
 	if err = createPostTable(db); err != nil {
 		return err

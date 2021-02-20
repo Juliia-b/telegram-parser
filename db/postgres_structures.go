@@ -161,6 +161,7 @@ TABLES:
      // deprecate PRIMARY KEY(message_id, chat_id)
 }
 
+maximum number of fields in table "top_3_hour" = 30
 3. top_3_hour {
      message_id  bigint    NOT NULL  -
      chat_id     bigint    NOT NULL  -
