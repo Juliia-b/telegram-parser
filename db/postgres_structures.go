@@ -15,19 +15,25 @@ type PostgresClient struct {
 	// tables in database
 	*TableClient
 	*TablePost
+	*TableTop3Hour
 }
 
-// Tables contains list of available tables in "tg_parser" database.
-type Tables struct {
-	Post   *TablePost
-	Client *TableClient
-}
+//// Tables contains list of available tables in "tg_parser" database.
+//type Tables struct {
+//	Post     *TablePost
+//	Client   *TableClient
+//	Top3Hour *TableTop3Hour
+//}
 
 type TablePost struct {
 	*Table
 }
 
 type TableClient struct {
+	*Table
+}
+
+type TableTop3Hour struct {
 	*Table
 }
 
@@ -112,6 +118,14 @@ func getClientTableStruct(dbConn *sql.DB) *TableClient {
 	}}
 }
 
+// getTop3HourTableStruct returns the filled structure TableTop3Hour.
+func getTop3HourTableStruct(dbCOnn *sql.DB) *TableTop3Hour {
+	return &TableTop3Hour{&Table{
+		Name:       "top_3_hour",
+		Connection: dbCOnn,
+	}}
+}
+
 /*----------------------------------DB STRUCT----------------------------------------*/
 
 /*
@@ -145,6 +159,23 @@ TABLES:
                                     уникальными.
 
      // deprecate PRIMARY KEY(message_id, chat_id)
+}
+
+3. top_3_hour {
+     message_id  bigint    NOT NULL  -
+     chat_id     bigint    NOT NULL  -
+     chat_title  text      NOT NULL  -
+     content     text      NOT NULL  -
+     date        bigint    NOT NULL  -
+     views       integer   NOT NULL  -
+     forwards    integer   NOT NULL  -
+     replies     integer   NOT NULL  -
+     link        text      NOT NULL  -
+
+     UNIQUE (message_id, chat_id) - Такое ограничение указывает,
+                                    что сочетание значений перечисленных столбцов должно быть уникально во  всей таблице,
+                                    тогда как значения каждого столбца по отдельности не должны быть (и обычно не будут)
+                                    уникальными.
 }
 
 */

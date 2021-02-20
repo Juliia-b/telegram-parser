@@ -30,10 +30,11 @@ func ConnectToPostgres() *PostgresClient {
 	}
 
 	return &PostgresClient{
-		Connection:  dbConn,
-		DbName:      dbName,
-		TableClient: getClientTableStruct(dbConn),
-		TablePost:   getPostTableStruct(dbConn),
+		Connection:    dbConn,
+		DbName:        dbName,
+		TableClient:   getClientTableStruct(dbConn),
+		TablePost:     getPostTableStruct(dbConn),
+		TableTop3Hour: getTop3HourTableStruct(dbConn),
 	}
 }
 

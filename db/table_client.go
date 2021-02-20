@@ -6,20 +6,20 @@ import (
 )
 
 // InsertClient inserts struct Client to the table "client" of tg_parser database.
-func (c *TableClient) InsertClient(client *Client) error {
-	sqlStatement := fmt.Sprintf(`INSERT INTO %v (cookie) VALUES (%v);`, c.Name, client.Cookie)
+func (t *TableClient) InsertClient(client *Client) error {
+	sqlStatement := fmt.Sprintf(`INSERT INTO %v (cookie) VALUES (%v);`, t.Name, client.Cookie)
 
-	_, err := c.Connection.Exec(sqlStatement)
+	_, err := t.Connection.Exec(sqlStatement)
 	return err
 }
 
 /*-----------------------------------------------------------------------------------*/
 
 // GetAllClients returns all rows from the table "post" of tg_parser database.
-func (c *TableClient) GetAllClients() ([]*Client, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v;`, c.Name)
+func (t *TableClient) GetAllClients() ([]*Client, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v;`, t.Name)
 
-	rows, err := c.Connection.Query(sqlStatement)
+	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +42,10 @@ func (c *TableClient) GetAllClients() ([]*Client, error) {
 /*-----------------------------------------------------------------------------------*/
 
 // GetClient returns only one client with the given cookie.
-func (c *TableClient) GetClient(cookie string) (*Client, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE cookie=%v ;`, c.Name, cookie)
+func (t *TableClient) GetClient(cookie string) (*Client, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE cookie=%v ;`, t.Name, cookie)
 
-	rows, err := c.Connection.Query(sqlStatement)
+	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +63,10 @@ func (c *TableClient) GetClient(cookie string) (*Client, error) {
 /*-----------------------------------------------------------------------------------*/
 
 // UpdateClient updates cookie value of a client in the table "client" of "tg_parser" database.
-func (c *TableClient) UpdateClient(lastCli *Client, newCookie string) (updateCount int64, err error) {
-	var sqlStatement = fmt.Sprintf(`UPDATE %v SET cookie = '%v' WHERE cookie = %v OR id = %v;`, c.Name, newCookie, lastCli.Cookie, lastCli.ID)
+func (t *TableClient) UpdateClient(lastCli *Client, newCookie string) (updateCount int64, err error) {
+	var sqlStatement = fmt.Sprintf(`UPDATE %v SET cookie = '%v' WHERE cookie = %v OR id = %v;`, t.Name, newCookie, lastCli.Cookie, lastCli.ID)
 
-	result, err := c.Connection.Exec(sqlStatement)
+	result, err := t.Connection.Exec(sqlStatement)
 	updateCount, _ = result.RowsAffected()
 
 	return updateCount, err

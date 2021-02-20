@@ -6,18 +6,18 @@ import (
 )
 
 // InsertMessage inserts struct Message to the table posts of tg_parser database.
-func (p *TablePost) InsertMessage(message *Message) error {
-	sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies, link) VALUES (%v, %v, '%v', '%v', %v, %v, %v, %v, '%v');`, p.Name, message.MessageID, message.ChatID, message.ChatTitle, message.Content, message.Date, message.Views, message.Forwards, message.Replies, message.Link)
+func (t *TablePost) InsertMessage(message *Message) error {
+	sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies, link) VALUES (%v, %v, '%v', '%v', %v, %v, %v, %v, '%v');`, t.Name, message.MessageID, message.ChatID, message.ChatTitle, message.Content, message.Date, message.Views, message.Forwards, message.Replies, message.Link)
 
-	_, err := p.Connection.Exec(sqlStatement)
+	_, err := t.Connection.Exec(sqlStatement)
 	return err
 }
 
 // GetAllMessages returns all rows from the table "post" of tg_parser database.
-func (p *TablePost) GetAllMessages() ([]*Message, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v;`, p.Name)
+func (t *TablePost) GetAllMessages() ([]*Message, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v;`, t.Name)
 
-	rows, err := p.Connection.Query(sqlStatement)
+	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +38,10 @@ func (p *TablePost) GetAllMessages() ([]*Message, error) {
 }
 
 // GetMessage returns only one post with the given chat id and message id.
-func (p *TablePost) GetMessage(chatID int64, messageID int64) (*Message, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE chat_id=%v AND message_id=%v ;`, p.Name, chatID, messageID)
+func (t *TablePost) GetMessage(chatID int64, messageID int64) (*Message, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE chat_id=%v AND message_id=%v ;`, t.Name, chatID, messageID)
 
-	rows, err := p.Connection.Query(sqlStatement)
+	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -57,10 +57,10 @@ func (p *TablePost) GetMessage(chatID int64, messageID int64) (*Message, error) 
 }
 
 // UpdateMessage updates statistics and content of the message in the table "post" of "tg_parser" database.
-func (p *TablePost) UpdateMessage(u *UpdateRow) (updateCount int64, err error) {
-	var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v, date = %v, link = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, p.Name, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.NewLink, u.ChatID, u.MessageID)
+func (t *TablePost) UpdateMessage(u *UpdateRow) (updateCount int64, err error) {
+	var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v, date = %v, link = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, t.Name, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.NewLink, u.ChatID, u.MessageID)
 
-	result, err := p.Connection.Exec(sqlStatement)
+	result, err := t.Connection.Exec(sqlStatement)
 	if err != nil {
 		return 0, err
 	}
@@ -71,10 +71,10 @@ func (p *TablePost) UpdateMessage(u *UpdateRow) (updateCount int64, err error) {
 
 // GetMessageWithPeriod returns messages for the selected time period.
 // The list of time intervals is in the structure TimePeriods.
-func (p *TablePost) GetMessageWithPeriod(from int64, to int64, limit int) ([]*Message, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v AND views>1 ORDER BY views DESC, forwards DESC, replies DESC  LIMIT %v;`, p.Name, from, to, limit)
+func (t *TablePost) GetMessageWithPeriod(from int64, to int64, limit int) ([]*Message, error) {
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v AND views>1 ORDER BY views DESC, forwards DESC, replies DESC  LIMIT %v;`, t.Name, from, to, limit)
 
-	rows, err := p.Connection.Query(sqlStatement)
+	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -94,10 +94,11 @@ func (p *TablePost) GetMessageWithPeriod(from int64, to int64, limit int) ([]*Me
 	return messages, nil
 }
 
-func (p *TablePost) DeleteMessage(message *Message) (deleteCount int64, err error) {
-	var sqlStatement = fmt.Sprintf(`DELETE FROM %v WHERE message_id = %v AND chat_id = %v`, p.Name, message.MessageID, message.ChatID)
+// DeleteMessage deletes message from the table "post" of tg_parser database.
+func (t *TablePost) DeleteMessage(message *Message) (deleteCount int64, err error) {
+	var sqlStatement = fmt.Sprintf(`DELETE FROM %v WHERE message_id = %v AND chat_id = %v`, t.Name, message.MessageID, message.ChatID)
 
-	result, err := p.Connection.Exec(sqlStatement)
+	result, err := t.Connection.Exec(sqlStatement)
 	if err != nil {
 		return 0, err
 	}
@@ -105,7 +106,6 @@ func (p *TablePost) DeleteMessage(message *Message) (deleteCount int64, err erro
 	deleteCount, err = result.RowsAffected()
 
 	return deleteCount, nil
-
 }
 
 /*-----------------------------------HELPERS-----------------------------------------*/
