@@ -48,6 +48,7 @@ type Message struct {
 	Views     int32  `json:"views"`
 	Forwards  int32  `json:"forwards"`
 	Replies   int32  `json:"replies"`
+	Link      string `json:"link"`
 }
 
 // UpdateRow structure compatible with table "post" schema.
@@ -61,6 +62,7 @@ type UpdateRow struct {
 	NewViews     int32
 	NewForwards  int32
 	NewReplies   int32
+	NewLink      string
 }
 
 // Client structure compatible with table "client" schema.
@@ -73,13 +75,14 @@ type Client struct {
 /*-----------------------------------HELPERS-----------------------------------------*/
 
 // NewMessage returns a structure compatible with the database schema.
-func NewMessage(message *tdlib.Message, chatTitle string) *Message {
+func NewMessage(message *tdlib.Message, chatTitle string, link *tdlib.MessageLink) *Message {
 	m := &Message{
 		MessageID: message.ID,
 		ChatID:    message.ChatID,
 		ChatTitle: chatTitle,
 		Content:   message.Content.(*tdlib.MessageText).Text.Text,
 		Date:      int64(message.Date),
+		Link:      link.Link,
 	}
 
 	if message.InteractionInfo != nil {
@@ -118,22 +121,28 @@ DATABASE: tg_parser
 TABLES:
 
 1. client {
-     id      SERIAL     NOT NULL  - auto increment user id
-     cookie  text       NOT NULL  - user cookie
+     id          SERIAL   NOT NULL  - auto increment user id
+     cookie      text     NOT NULL  - user cookie
+
      PRIMARY KEY(id)
      UNIQUE(cookie)
 }
 
 2. post {                   in last tg_parser
-     message_id bigint  NOT NULL  -
-     chat_id bigint     NOT NULL  -
-     chat_title text    NOT NULL  -
-     content text       NOT NULL  -
-     date bigint        NOT NULL  -
-     views integer      NOT NULL  -
-     forwards integer   NOT NULL  -
-     replies integer    NOT NULL  -
-     UNIQUE (message_id, chat_id) - Такое ограничение указывает, что сочетание значений перечисленных столбцов должно быть уникально во всей таблице, тогда как значения каждого столбца по отдельности не должны быть (и обычно не будут) уникальными.
+     message_id  bigint    NOT NULL  -
+     chat_id     bigint    NOT NULL  -
+     chat_title  text      NOT NULL  -
+     content     text      NOT NULL  -
+     date        bigint    NOT NULL  -
+     views       integer   NOT NULL  -
+     forwards    integer   NOT NULL  -
+     replies     integer   NOT NULL  -
+     link        text      NOT NULL  -
+
+     UNIQUE (message_id, chat_id) - Такое ограничение указывает,
+                                    что сочетание значений перечисленных столбцов должно быть уникально во  всей таблице,
+                                    тогда как значения каждого столбца по отдельности не должны быть (и обычно не будут)
+                                    уникальными.
 
      // deprecate PRIMARY KEY(message_id, chat_id)
 }

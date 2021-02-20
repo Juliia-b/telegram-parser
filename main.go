@@ -5,10 +5,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"sync"
 	"telegram-parser/db"
-	"telegram-parser/handler"
 	"telegram-parser/helpers"
 	"telegram-parser/mq"
 	"telegram-parser/parser"
+	"telegram-parser/server"
 )
 
 func main() {
@@ -16,18 +16,11 @@ func main() {
 	helpers.ConfigureLogrus()
 	helpers.CheckEnv()
 
+	dbClient := db.ConnectToPostgres()
+	mqClient := mq.RabbitInit()
+
 	tdlib.SetLogVerbosityLevel(1)
 	tdlib.SetFilePath("./errors.txt")
-
-	dbClient, err := db.ConnectToPostgres()
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	mqClient, err := mq.RabbitInit()
-	if err != nil {
-		logrus.Panic(err)
-	}
 
 	app := parser.AppInstance(dbClient, mqClient)
 
@@ -42,7 +35,7 @@ func main() {
 	// Run tracking statistics
 	app.StartTrackingStatistics(50)
 
-	r := handler.ServerInit(dbClient)
+	r := server.Init(dbClient)
 
 	logrus.Info("Server is running on ", r.Server.Addr)
 	logrus.Panic(r.Server.ListenAndServe())

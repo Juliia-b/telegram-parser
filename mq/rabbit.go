@@ -20,15 +20,15 @@ type Rabbit struct {
 /*-----------------------------------METHODS-----------------------------------------*/
 
 // RabbitInit returns a message broker instance with the required queue connections.
-func RabbitInit() (*Rabbit, error) {
+func RabbitInit() *Rabbit {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://guest:guest@localhost:%v/", os.Getenv("RABBITPORT")))
 	if err != nil {
-		return nil, err
+		logrus.Fatal(err)
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return nil, err
+		logrus.Fatal(err)
 	}
 
 	updatesQ, err := ch.QueueDeclare(
@@ -40,7 +40,7 @@ func RabbitInit() (*Rabbit, error) {
 		nil,       // arguments
 	)
 	if err != nil {
-		return nil, err
+		logrus.Fatal(err)
 	}
 
 	rabbit := &Rabbit{
@@ -49,7 +49,7 @@ func RabbitInit() (*Rabbit, error) {
 		UpdatesQueue: updatesQ,
 	}
 
-	return rabbit, nil
+	return rabbit
 }
 
 // CloseConn cleanly closes the RabbitMQ Channel and Connection.

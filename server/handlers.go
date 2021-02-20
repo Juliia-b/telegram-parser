@@ -1,11 +1,13 @@
-package handler
+package server
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/now"
 	"net/http"
+	"sync"
 	"telegram-parser/db"
 	"time"
 )
@@ -13,7 +15,9 @@ import (
 /*---------------------------------STRUCTURES----------------------------------------*/
 
 type handler struct {
-	dbCli db.DB
+	dbCli      db.DB
+	ws         *ws
+	CookieName string
 }
 
 type timePeriods struct {
@@ -28,8 +32,8 @@ type timePeriods struct {
 
 /*-----------------------------------METHODS-----------------------------------------*/
 
-// GetBestInPeriod returns the best posts for the specified period. Limit is 50. Less can be returned.
-func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
+// getBestInPeriod returns the best posts for the specified period. Limit is 50. Less can be returned.
+func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -75,6 +79,19 @@ func (h *handler) GetBestInPeriod(w http.ResponseWriter, r *http.Request) {
 }
 
 /*-----------------------------------HELPERS-----------------------------------------*/
+
+// handlerInit initializes structure handler.
+func handlerInit(dbCli db.DB) *handler {
+	var wsConn = make(map[*websocket.Conn]int)
+	return &handler{
+		dbCli: dbCli,
+		ws: &ws{
+			connections: wsConn,
+			rwMutex:     &sync.RWMutex{},
+		},
+		CookieName: "u.v1",
+	}
+}
 
 // getTimePeriods returns a structure with constant names of periods.
 func getTimePeriods() *timePeriods {
@@ -129,3 +146,72 @@ func dateCalculation(period string) (from int64, to int64, err error) {
 
 	return from, to, err
 }
+
+/*----------------------------------DEPRECATE----------------------------------------*/
+
+// DEPRECATE
+// sessionMiddleware
+//func (h *server) sessionMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		cookieName := h.CookieName
+//
+//		_, err := getCookie(r, cookieName)
+//		if err == nil {
+//			// cookie presents
+//			next.ServeHTTP(w, r)
+//		}
+//
+//		cookie := generateCookie(cookieName)
+//
+//		//TODO обдумать для чего использовать таблицу client
+//
+//		//h.dbCli.InsertClient(db.Client{
+//		//	ID:     0,
+//		//	Cookie: cookie,
+//		//})
+//
+//		http.SetCookie(w, cookie)
+//
+//		next.ServeHTTP(w, r)
+//	})
+//}
+
+// getCookie gets the value of the set cookie by name.
+//func getCookie(r *http.Request, cookieName string) (cookie string, err error) {
+//	c, err := r.Cookie(cookieName)
+//	if c != nil {
+//		cookie = c.Value
+//	}
+//
+//	return cookie, err
+//}
+
+//// generateCookie returns *http.Cookie with filled fields.
+//func generateCookie(cookieName string) (cookie *http.Cookie) {
+//	val := generateString()
+//
+//	return &http.Cookie{
+//		Name:   cookieName,
+//		Value:  val, // Some encoded value
+//		Path:   "/", // Otherwise it defaults to the /login if you create this on /login (standard cookie behaviour)
+//		MaxAge: 0,   // MaxAge=0 means no 'Max-Age' attribute specified.
+//	}
+//}
+
+//// generateString generates a fixed length string from unix time.
+//func generateString() string {
+//	rand.Seed(time.Now().UnixNano())
+//
+//	//Only lowercase
+//	var charSet = "abcdedfghijkluywxzmnopqrst"
+//	var result string
+//	var resultStringLen = 12
+//
+//	for i := 0; i < resultStringLen; i++ {
+//		randomIndex := rand.Intn(len(charSet))
+//		randomChar := charSet[randomIndex]
+//		result += string(randomChar)
+//	}
+//
+//	return result
+//}

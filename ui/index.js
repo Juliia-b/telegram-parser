@@ -100,36 +100,36 @@ function timeConverter(UNIX_timestamp) {
 
 //  ----------------------- WEBSOCKET -----------------------
 
-let socket = new WebSocket("ws://" + document.location.host + "/ws");
-
-socket.onopen = function () {
-    console.log("Соединение установлено.")
-
-    // let uJson = `{"cookie": "${getCookie()}" , "user" : {"id" : "${userId}", "nickname" : "${userNickname}"}}`
-    // console.log("send cookie : ", uJson)
-    //
-    // // TODO в send отправлять cookie для проверки валидности токена, только после этого устанавливать связь
-    // socket.send(uJson)
-    // console.log("Send first JSON ok")
-};
-
-socket.onmessage = function (event) {
-    console.log("Получены данные " + event.data);
-    // TODO обрабатывать полученные данные
-};
-
-socket.onerror = function (error) {
-    console.log("Ошибка " + error.message);
-};
-
-socket.onclose = function (event) {
-    if (event.wasClean) {
-        console.log('Соединение закрыто чисто');
-    } else {
-        console.log('Обрыв соединения'); // например, "убит" процесс сервера
-    }
-    console.log('Код: ' + event.code + ' причина: ' + event.reason);
-};
+// let socket = new WebSocket("ws://" + document.location.host + "/ws");
+//
+// socket.onopen = function () {
+//     console.log("Соединение установлено.")
+//
+//     // let uJson = `{"cookie": "${getCookie()}" , "user" : {"id" : "${userId}", "nickname" : "${userNickname}"}}`
+//     // console.log("send cookie : ", uJson)
+//     //
+//     // // TODO в send отправлять cookie для проверки валидности токена, только после этого устанавливать связь
+//     // socket.send(uJson)
+//     // console.log("Send first JSON ok")
+// };
+//
+// socket.onmessage = function (event) {
+//     console.log("Получены данные " + event.data);
+//     // TODO обрабатывать полученные данные
+// };
+//
+// socket.onerror = function (error) {
+//     console.log("Ошибка " + error.message);
+// };
+//
+// socket.onclose = function (event) {
+//     if (event.wasClean) {
+//         console.log('Соединение закрыто чисто');
+//     } else {
+//         console.log('Обрыв соединения'); // например, "убит" процесс сервера
+//     }
+//     console.log('Код: ' + event.code + ' причина: ' + event.reason);
+// };
 
 // -------------------------------- messenger example --------------------------------
 

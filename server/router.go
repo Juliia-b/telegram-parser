@@ -1,4 +1,4 @@
-package handler
+package server
 
 import (
 	"github.com/gorilla/mux"
@@ -12,14 +12,14 @@ type Server struct {
 	Server *http.Server
 }
 
-func ServerInit(dbCli db.DB) *Server {
+func Init(dbCli db.DB) *Server {
 	var r = mux.NewRouter()
+	var h = handlerInit(dbCli)
 
-	h := &handler{dbCli: dbCli}
-
-	r.HandleFunc("/ws", h.WsInit).Methods("GET")
-	r.HandleFunc("/best", h.GetBestInPeriod).Methods("GET").Queries("period", "{period}")
+	//r.HandleFunc("/ws", h.UpgradeToWs).Methods("GET")
+	r.HandleFunc("/best", h.getBestInPeriod).Methods("GET").Queries("period", "{period}")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
+	//r.Use(h.sessionMiddleware)
 
 	srv := &http.Server{
 		Handler:      r,
