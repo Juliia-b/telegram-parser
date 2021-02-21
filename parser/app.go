@@ -48,11 +48,11 @@ func newTgClient() *Telegram {
 		UseTestDataCenter:      false,
 		DatabaseDirectory:      "./tdlib-db",
 		FileDirectory:          "./tdlib-files",
-		UseFileDatabase:        false,
-		UseChatInfoDatabase:    false,
-		UseMessageDatabase:     false,
+		UseFileDatabase:        true,
+		UseChatInfoDatabase:    true,
+		UseMessageDatabase:     true,
 		UseSecretChats:         false,
-		EnableStorageOptimizer: false,
+		EnableStorageOptimizer: true,
 		IgnoreFileNames:        false,
 	})
 
@@ -69,23 +69,27 @@ func (a *App) TelegramAuthorization(wg *sync.WaitGroup) {
 		case tdlib.AuthorizationStateWaitPhoneNumberType:
 			_, err := tgCli.SendPhoneNumber(os.Getenv("TGTELNUMBER"))
 			if err != nil {
-				fmt.Printf("Error sending phone number: %v", err)
+				logrus.Panicf("Error sending phone number: %v", err)
 			}
 		case tdlib.AuthorizationStateWaitCodeType:
 			var code string
 			fmt.Print("Enter code: ")
 			fmt.Scanln(&code)
+			fmt.Println()
 			_, err := tgCli.SendAuthCode(code)
 			if err != nil {
 				fmt.Printf("Error sending auth code : %v", err)
+				fmt.Println()
 			}
 		case tdlib.AuthorizationStateWaitPasswordType:
 			var password string
 			fmt.Print("Enter Password: ")
 			fmt.Scanln(&password)
+			fmt.Println()
 			_, err := tgCli.SendAuthPassword(password)
 			if err != nil {
 				fmt.Printf("Error sending auth password: %v", err)
+				fmt.Println()
 			}
 		case tdlib.AuthorizationStateReadyType:
 			logrus.Info("TelegramAuthorization Ready.\n")

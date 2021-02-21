@@ -60,9 +60,12 @@ func (r *Rabbit) CloseConn() {
 
 // Publish sends a Publishing from the client to an exchange on the server.
 func (r *Rabbit) Publish(msg *db.Message) error {
-	body := marshalMessage(msg)
+	body, err := marshalMessage(msg)
+	if err != nil {
+		return err
+	}
 
-	err := r.Channel.Publish(
+	err = r.Channel.Publish(
 		"",                  // exchange
 		r.UpdatesQueue.Name, // routing key
 		false,               // mandatory
@@ -96,22 +99,23 @@ func (r *Rabbit) Consume() <-chan amqp.Delivery {
 
 /*-----------------------------------HELPERS-----------------------------------------*/
 
-func marshalMessage(msg *db.Message) []byte {
+// marshalMessage returns the JSON encoding of *db.Message.
+func marshalMessage(msg *db.Message) (result []byte, err error) {
 	bytes, err := json.Marshal(msg)
 	if err != nil {
-		// TODO убрать панику
-		logrus.Fatal(err)
+		return nil, err
 	}
 
-	return bytes
+	return bytes, nil
 }
 
-func UnmarshalRabbitBody(bytes []byte) *db.Message {
+// UnmarshalRabbitBody  parses the JSON-encoded data into *db.Message.
+func UnmarshalRabbitBody(bytes []byte) (message *db.Message, err error) {
 	var msg db.Message
-	err := json.Unmarshal(bytes, &msg)
+	err = json.Unmarshal(bytes, &msg)
 	if err != nil {
-		logrus.Fatal(err)
+		return nil, err
 	}
 
-	return &msg
+	return &msg, err
 }
