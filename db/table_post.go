@@ -7,9 +7,11 @@ import (
 
 // InsertMessage inserts struct Message to the table posts of tg_parser database.
 func (t *TablePost) InsertMessage(message *Message) error {
-	sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies, link) VALUES (%v, %v, '%v', '%v', %v, %v, %v, %v, '%v');`, t.Name, message.MessageID, message.ChatID, message.ChatTitle, message.Content, message.Date, message.Views, message.Forwards, message.Replies, message.Link)
+	//sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies, link) VALUES (%v, %v, '%v', '%v', %v, %v, %v, %v, '%v');`, t.Name, message.MessageID, message.ChatID, strings.Replace(message.ChatTitle, "'", `\\'`, -1), strings.Replace(message.Content, "'", `\\'`, -1), message.Date, message.Views, message.Forwards, message.Replies, strings.Replace(message.Link, "'", `\\'`, -1),)
 
-	_, err := t.Connection.Exec(sqlStatement)
+	sqlStatement := fmt.Sprintf(`INSERT INTO %v (message_id, chat_id, chat_title, content , date, views, forwards, replies, link) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`, t.Name)
+
+	_, err := t.Connection.Exec(sqlStatement, message.MessageID, message.ChatID, message.ChatTitle, message.Content, message.Date, message.Views, message.Forwards, message.Replies, message.Link)
 	return err
 }
 
@@ -58,9 +60,11 @@ func (t *TablePost) GetMessage(chatID int64, messageID int64) (*Message, error) 
 
 // UpdateMessage updates statistics and content of the message in the table "post" of "tg_parser" database.
 func (t *TablePost) UpdateMessage(u *UpdateRow) (updateCount int64, err error) {
-	var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v, date = %v, link = %v WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, t.Name, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.NewLink, u.ChatID, u.MessageID)
+	//var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = '%v', content = '%v' , views = %v , forwards = %v, replies = %v, date = %v, link = '%v' WHERE chat_id = %v AND message_id = %v RETURNING message_id;`, t.Name, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.NewLink, u.ChatID, u.MessageID)
 
-	result, err := t.Connection.Exec(sqlStatement)
+	var sqlStatement = fmt.Sprintf(`UPDATE %v SET chat_title = $1, content = $2 , views = $3 , forwards = $4, replies = $5, date = $6, link = $7 WHERE chat_id = $8 AND message_id = $9 RETURNING message_id;`, t.Name)
+
+	result, err := t.Connection.Exec(sqlStatement, u.NewChatTitle, u.NewContent, u.NewViews, u.NewForwards, u.NewReplies, u.NewDate, u.NewLink, u.ChatID, u.MessageID)
 	if err != nil {
 		return 0, err
 	}
