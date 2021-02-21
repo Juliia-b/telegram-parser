@@ -29,14 +29,20 @@ func main() {
 	app.TelegramAuthorization(&wg)
 	wg.Wait()
 
+	// Необходимо, чтобы tdlib знал о чатах, поэтому сначала нужно пройтись по всем чатам
+	_, err := app.Telegram.GetChatList(5000)
+	if err != nil {
+		logrus.Panicf("Fail to get chat list with error = '%v'.", err.Error())
+	}
+
 	// Run handling updates from Telegram
 	go app.GetUpdates()
 
 	// Run tracking statistics
 	app.StartTrackingStatistics(50)
 
-	r := server.Init(dbClient)
+	s := server.Init(dbClient)
 
-	logrus.Info("Server is running on ", r.Server.Addr)
-	logrus.Panic(r.Server.ListenAndServe())
+	logrus.Info("Server is running on ", s.Server.Addr)
+	logrus.Panic(s.Server.ListenAndServe())
 }
