@@ -15,7 +15,7 @@ type PostgresClient struct {
 	// tables in database
 	*TableClient
 	*TablePost
-	*TableTop3Hour
+	//*TableTop3Hour  // DEPRECATE
 }
 
 //// Tables contains list of available tables in "tg_parser" database.
@@ -33,9 +33,10 @@ type TableClient struct {
 	*Table
 }
 
-type TableTop3Hour struct {
-	*Table
-}
+// DEPRECATE
+//type TableTop3Hour struct {
+//	*Table
+//}
 
 // Table contains a list of available tables for the database.
 type Table struct {
@@ -118,13 +119,14 @@ func getClientTableStruct(dbConn *sql.DB) *TableClient {
 	}}
 }
 
+// DEPRECATE
 // getTop3HourTableStruct returns the filled structure TableTop3Hour.
-func getTop3HourTableStruct(dbCOnn *sql.DB) *TableTop3Hour {
-	return &TableTop3Hour{&Table{
-		Name:       "top_3_hour",
-		Connection: dbCOnn,
-	}}
-}
+//func getTop3HourTableStruct(dbCOnn *sql.DB) *TableTop3Hour {
+//	return &TableTop3Hour{&Table{
+//		Name:       "top_3_hour",
+//		Connection: dbCOnn,
+//	}}
+//}
 
 /*----------------------------------DB STRUCT----------------------------------------*/
 
@@ -161,6 +163,7 @@ TABLES:
      // deprecate PRIMARY KEY(message_id, chat_id)
 }
 
+// DEPRECATE
 maximum number of fields in table "top_3_hour" = 30
 3. top_3_hour {
      message_id  bigint    NOT NULL  -

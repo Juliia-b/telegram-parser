@@ -30,11 +30,11 @@ func ConnectToPostgres() *PostgresClient {
 	}
 
 	return &PostgresClient{
-		Connection:    dbConn,
-		DbName:        dbName,
-		TableClient:   getClientTableStruct(dbConn),
-		TablePost:     getPostTableStruct(dbConn),
-		TableTop3Hour: getTop3HourTableStruct(dbConn),
+		Connection:  dbConn,
+		DbName:      dbName,
+		TableClient: getClientTableStruct(dbConn),
+		TablePost:   getPostTableStruct(dbConn),
+		//TableTop3Hour: getTop3HourTableStruct(dbConn),  // DEPRECATE
 	}
 }
 
@@ -46,7 +46,7 @@ func (pg *PostgresClient) CloseConnection() {
 /*-----------------------------------HELPERS-----------------------------------------*/
 
 // createTables creates all the necessary tables in the database, if they have not been created yet.
-// Table names: "client" , "post", "top_3_hour".
+// Table names: "client" , "post".
 func createTables(db *sql.DB) (err error) {
 	if err = createPostTable(db); err != nil {
 		return err
@@ -56,9 +56,10 @@ func createTables(db *sql.DB) (err error) {
 		return err
 	}
 
-	if err = createTop3hourTable(db); err != nil {
-		return err
-	}
+	// DEPRECATE
+	//if err = createTop3hourTable(db); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
@@ -87,14 +88,15 @@ func createClientTable(db *sql.DB) (err error) {
 	return nil
 }
 
+// DEPRECATE
 // createTop3hourTable creates table "top_3_hour" in database.
-func createTop3hourTable(db *sql.DB) (err error) {
-	sqlStatement := `CREATE TABLE IF NOT EXISTS top_3_hour ( message_id bigint NOT NULL , chat_id bigint NOT NULL , chat_title text NOT NULL , content text NOT NULL , date bigint NOT NULL , views integer NOT NULL , forwards integer NOT NULL , replies integer NOT NULL , link text NOT NULL , UNIQUE(message_id, chat_id) );`
-
-	_, err = db.Exec(sqlStatement)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+//func createTop3hourTable(db *sql.DB) (err error) {
+//	sqlStatement := `CREATE TABLE IF NOT EXISTS top_3_hour ( message_id bigint NOT NULL , chat_id bigint NOT NULL , chat_title text NOT NULL , content text NOT NULL , date bigint NOT NULL , views integer NOT NULL , forwards integer NOT NULL , replies integer NOT NULL , link text NOT NULL , UNIQUE(message_id, chat_id) );`
+//
+//	_, err = db.Exec(sqlStatement)
+//	if err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}

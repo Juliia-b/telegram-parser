@@ -4,7 +4,7 @@ type DB interface {
 	CloseConnection()
 	DBTablePost
 	DBTableClient
-	DBTableTop3hour
+	//DBTableTop3hour  // DEPRECATE
 }
 
 type DBTablePost interface {
@@ -23,8 +23,9 @@ type DBTableClient interface {
 	UpdateClient(lastCli *Client, newCookie string) (updateCount int64, err error)
 }
 
-type DBTableTop3hour interface {
-	InsertTop3hour(message *Message) error
-	GetAllTop3hour() ([]*Message, error)
-	DeleteAllTop3hour() (deleteCount int64, err error)
-}
+// DEPRECATE
+//type DBTableTop3hour interface {
+//	InsertTop3hour(message *Message) error
+//	GetAllTop3hour() ([]*Message, error)
+//	DeleteAllTop3hour() (deleteCount int64, err error)
+//}
