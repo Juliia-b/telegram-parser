@@ -14,7 +14,10 @@ window.onload = function () {
 
     let todayBtn = document.getElementsByClassName("btn")[0];
     getBestInPeriod(todayBtn, "today")
+    getTopIn3Hours()
 }
+
+/*-----------------------------------HANDLERS--------------------------------------*/
 
 // getBestInPeriod requests the server for the best posts for a period, processes the server's response,
 // adjusts the addition and removal of the "active" class from the buttons of periods.
@@ -55,6 +58,25 @@ async function getBestInPeriod(btnEl, period) {
     noDataEl.innerText = ""
     results.posts = posts
 }
+
+// getTopIn3Hours returns the best posts in the last 3 hours.
+// The field is self-updating by the websocket connection.
+async function getTopIn3Hours() {
+    let posts;
+
+    try {
+        const res = await axios.get(`http://localhost:8000/best/3hour`)
+        posts = res.data
+    } catch (e) {
+        // noDataEl.innerText = e
+        console.log("error when get best/3hour with err : ", e)
+        return
+    }
+
+    console.log("receive topIn3Hours = ", posts)
+}
+
+/*-----------------------------------HELPERS---------------------------------------*/
 
 // rmActiveClassFromBtns removes the class "active" from all buttons for receiving posts for the period.
 function rmActiveClassFromBtns() {
@@ -97,54 +119,28 @@ function timeConverter(UNIX_timestamp) {
     return time;
 }
 
+/*----------------------------------WEBSOCKET---------------------------------------*/
 
-//  ----------------------- WEBSOCKET -----------------------
+let socket = new WebSocket("ws://" + document.location.host + "/ws");
 
-// let socket = new WebSocket("ws://" + document.location.host + "/ws");
-//
-// socket.onopen = function () {
-//     console.log("Соединение установлено.")
-//
-//     // let uJson = `{"cookie": "${getCookie()}" , "user" : {"id" : "${userId}", "nickname" : "${userNickname}"}}`
-//     // console.log("send cookie : ", uJson)
-//     //
-//     // // TODO в send отправлять cookie для проверки валидности токена, только после этого устанавливать связь
-//     // socket.send(uJson)
-//     // console.log("Send first JSON ok")
-// };
-//
-// socket.onmessage = function (event) {
-//     console.log("Получены данные " + event.data);
-//     // TODO обрабатывать полученные данные
-// };
-//
-// socket.onerror = function (error) {
-//     console.log("Ошибка " + error.message);
-// };
-//
-// socket.onclose = function (event) {
-//     if (event.wasClean) {
-//         console.log('Соединение закрыто чисто');
-//     } else {
-//         console.log('Обрыв соединения'); // например, "убит" процесс сервера
-//     }
-//     console.log('Код: ' + event.code + ' причина: ' + event.reason);
-// };
+socket.onopen = function () {
+    console.log("Соединение установлено.")
+};
 
-// -------------------------------- messenger example --------------------------------
+socket.onmessage = function (event) {
+    console.log("Получены данные " + event.data);
+    // TODO обрабатывать полученные данные
+};
 
-// function getCookie() {
-//     let split = document.cookie.split(";")
-//     let cookie
-//
-//     for (let i = 0; i < split.length; i++) {
-//         if (split[i].includes("jwt=")) {
-//
-//             let str = split[i]
-//             cookie = str.split("=")
-//             return cookie[1]
-//         }
-//     }
-//
-//     return ""
-// }
+socket.onerror = function (error) {
+    console.log("Ошибка " + error.message);
+};
+
+socket.onclose = function (event) {
+    if (event.wasClean) {
+        console.log('Соединение закрыто чисто');
+    } else {
+        console.log('Обрыв соединения'); // например, "убит" процесс сервера
+    }
+    console.log('Код: ' + event.code + ' причина: ' + event.reason);
+};

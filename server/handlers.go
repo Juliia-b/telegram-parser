@@ -74,7 +74,7 @@ func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 
 		payload, err := json.Marshal(v)
 		if err != nil {
-			logrus.Errorf("Failed to encode value '%#v' with error '%v'.", v, err.Error())
+			logrus.Errorf("Failed to encode value'%#v' into JSON with error '%v'.", v, err.Error())
 			w.WriteHeader(http.StatusNotImplemented)
 			return
 		}
@@ -85,7 +85,7 @@ func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 
 	payload, err := json.Marshal(messages)
 	if err != nil {
-		logrus.Errorf("Failed to encode value '%#v' with error '%v'.", messages, err.Error())
+		logrus.Errorf("Failed to encode value '%#v' into JSON with error '%v'.", messages, err.Error())
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
@@ -95,23 +95,18 @@ func (h *handler) getBestInPeriod(w http.ResponseWriter, r *http.Request) {
 	w.Write(payload)
 }
 
-// getMsgsFromTop3Hour returns all posts from table "top_3_hour" to the client.
-func (h *handler) getMsgsFromTop3Hour(w http.ResponseWriter, r *http.Request) {
+// getTopMsgsIn3Hours returns the best posts to the client in the last 3 hours.
+func (h *handler) getTopMsgsIn3Hours(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 
-	posts, err := h.dbCli.GetAllTop3hour()
-	if err != nil {
-		logrus.Errorf("Failed to get data from table 'top_3_hour' with error '%v'.", err.Error())
-		w.WriteHeader(http.StatusNotImplemented)
-		return
-	}
+	var errorPayload = []byte(`{ "error" : true }`)
 
-	payload, err := json.Marshal(posts)
+	payload, err := getTopIn3HoursHelper(h)
 	if err != nil {
-		logrus.Errorf("Failed to encode value '%#v' with error '%v'.", posts, err.Error())
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusOK)
+		w.Write(errorPayload)
 		return
 	}
 
@@ -119,8 +114,10 @@ func (h *handler) getMsgsFromTop3Hour(w http.ResponseWriter, r *http.Request) {
 	w.Write(payload)
 }
 
-// TrackTop3HourTable every 3 minutes sends data from table A to active clients via the websocket.
-func (h *handler) TrackTop3HourTable() {
+/*-----------------------------------HELPERS-----------------------------------------*/
+
+// trackTopMsgsIn3Hours every 3 minutes sends top messages in three hours to active clients via the websocket.
+func trackTopMsgsIn3Hours(h *handler) {
 	var tickerPeriod = 3 * time.Minute
 
 	ticker := time.NewTicker(tickerPeriod)
@@ -129,27 +126,54 @@ func (h *handler) TrackTop3HourTable() {
 		for {
 			<-ticker.C
 
-			posts, err := h.dbCli.GetAllTop3hour()
+			payload, err := getTopIn3HoursHelper(h)
 			if err != nil {
-				logrus.Errorf("Failed to get data from table 'top_3_hour' with error '%v'.", err.Error())
+				// Error present into getTopIn3HoursHelper
 				continue
 			}
 
-			payload, err := json.Marshal(posts)
-			if err != nil {
-				logrus.Errorf("Failed to encode value '%#v' with error '%v'.", posts, err.Error())
-				continue
+			if payload == nil {
+				payload = []byte("null")
 			}
 
 			for wsConn, _ := range h.ws.connections {
 				err = writeMsg(wsConn, payload)
-				logrus.Errorf("Failed to write message using a websocket connection with error 'v'.", err.Error())
+				if err != nil {
+					logrus.Errorf("Failed to send message '%#v' by websocket with error = '%v'.", string(payload), err.Error())
+					//	TODO обработать
+				}
 			}
 		}
 	}()
 }
 
-/*-----------------------------------HELPERS-----------------------------------------*/
+// getTopIn3HoursHelper is a helper for finding top posts in the last 3 hours.
+func getTopIn3HoursHelper(h *handler) (result []byte, err error) {
+	var top3hourLimit = 30
+
+	var from = time.Now().Unix()
+	var hour3 = int64(time.Hour.Seconds()) * 3 // number of seconds in three hours
+	var to = from - hour3
+
+	posts, err := h.dbCli.GetMessageWithPeriod(from, to, top3hourLimit)
+	if err != nil {
+		logrus.Errorf("Failed to get posts from table 'post' with error '%v'.", err.Error())
+		return result, err
+	}
+
+	if len(posts) == 0 {
+		logrus.Errorf("In 3 hour period has no one post.")
+		return result, nil
+	}
+
+	payload, err := json.Marshal(posts)
+	if err != nil {
+		logrus.Errorf("Failed to encode value '%#v' into JSON with error '%v'.", payload, err.Error())
+		return result, err
+	}
+
+	return payload, nil
+}
 
 // getTimePeriods returns a structure with constant names of periods.
 func getTimePeriods() *timePeriods {

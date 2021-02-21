@@ -17,11 +17,11 @@ func Init(dbCli db.DB) *Server {
 	var h = handlerInit(dbCli)
 
 	// run the update handler in database "top_3_hour"
-	h.TrackTop3HourTable()
+	trackTopMsgsIn3Hours(h)
 
 	r.HandleFunc("/ws", h.UpgradeToWs).Methods("GET")
 	r.HandleFunc("/best", h.getBestInPeriod).Methods("GET").Queries("period", "{period}")
-	r.HandleFunc("/best/3hour", h.getMsgsFromTop3Hour).Methods("GET")
+	r.HandleFunc("/best/3hour", h.getTopMsgsIn3Hours).Methods("GET") // DEPRECATE
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./ui/")))
 	//r.Use(h.sessionMiddleware)
 

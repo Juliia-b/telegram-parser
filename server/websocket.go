@@ -33,17 +33,17 @@ func (h *handler) UpgradeToWs(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
 	// upgrade this HTTP connection to a WebSocket connection
-	ws, err := upgrader.Upgrade(w, r, nil)
+	upgrade, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	h.ws.setVal(ws)
+	h.ws.setVal(upgrade)
 }
 
 // writeMsg sends a message to the client on the websocket.
-func writeMsg(ws *websocket.Conn, message []byte) (err error) {
-	if err := ws.WriteMessage(websocket.TextMessage, message); err != nil {
+func writeMsg(wsConn *websocket.Conn, message []byte) (err error) {
+	if err := wsConn.WriteMessage(websocket.TextMessage, message); err != nil {
 		return err
 	}
 	return nil
@@ -58,14 +58,6 @@ func readMsg(ws *websocket.Conn) error {
 	}
 
 	logrus.Infof("Received new msg from ws : '%v'.", string(msg))
-
-	//var ui userIdentity
-	//if err := json.Unmarshal(msg, &ui); err != nil {
-	//	return nil, err
-	//}
-
-	//fmt.Printf("------------------------------------- Websocket readMsg, ui: %#v \n", ui)
-
 	return nil
 }
 
