@@ -5,6 +5,10 @@ body {
     background-color: white;
 }
 
+.topIn3Hours {
+    background-color: #f8f8f9;
+}
+
 .results {
     width: 70%;
     margin: auto;

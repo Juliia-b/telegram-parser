@@ -110,6 +110,12 @@ func (h *handler) getTopMsgsIn3Hours(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if payload == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("In 3 hour period has no one post."))
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(payload)
 }
@@ -151,9 +157,9 @@ func trackTopMsgsIn3Hours(h *handler) {
 func getTopIn3HoursHelper(h *handler) (result []byte, err error) {
 	var top3hourLimit = 30
 
-	var from = time.Now().Unix()
+	var to = time.Now().Unix()
 	var hour3 = int64(time.Hour.Seconds()) * 3 // number of seconds in three hours
-	var to = from - hour3
+	var from = to - hour3
 
 	posts, err := h.dbCli.GetMessageWithPeriod(from, to, top3hourLimit)
 	if err != nil {

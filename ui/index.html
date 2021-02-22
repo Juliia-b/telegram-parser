@@ -28,31 +28,55 @@
 
 <br><br>
 
-<div class="no-data">
+<div class="no-data"></div>
 
+<div id="topIn3Hours" class="results topIn3Hours">
+    <div v-for="(post, index) in posts" id="result">
+        {{index}} + 1
+        <div class="title">
+            {{post.chattitle}}:
+        </div>
+        <div class="content">
+            {{post.content}}
+        </div>
+        <hr>
+        <div class="interactions-block">
+            <div class="interactions left">
+                Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
+            </div>
+            <div class="interactions right">{{post.date}}</div>
+        </div>
+        <hr>
+    </div>
 </div>
 
+
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+
+
 <div id="results" class="results">
-    <ol>
-        <div v-for="(post, index) in posts" id="result">
-            <li>
-                <div class="title">
-                    {{post.chattitle}}:
-                </div>
-                <div class="content">
-                    {{post.content}}
-                </div>
-                <hr>
-                <div class="interactions-block">
-                    <div class="interactions left">
-                        Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
-                    </div>
-                    <div class="interactions right">{{post.date}}</div>
-                </div>
-                <hr>
-            </li>
+    <div v-for="(post, index) in posts" id="result">
+        {{index}} + 1
+        <div class="title">
+            {{post.chattitle}}:
         </div>
-    </ol>
+        <div class="content">
+            {{post.content}}
+        </div>
+        <hr>
+        <div class="interactions-block">
+            <div class="interactions left">
+                Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
+            </div>
+            <div class="interactions right">{{post.date}}</div>
+        </div>
+        <hr>
+    </div>
 </div>
 
 </body>

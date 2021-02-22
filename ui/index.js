@@ -1,9 +1,20 @@
 let results;
+let latestTop;
 
 // onload initializes object Vue.js, calls function getBestInPeriod with period "today"
 window.onload = function () {
     results = new Vue({
         el: '#results',
+        data: {
+            posts: [
+                // { message: 'Foo' },
+                // { message: 'Bar' }
+            ]
+        }
+    })
+
+    latestTop = new Vue({
+        el: '#topIn3Hours',
         data: {
             posts: [
                 // { message: 'Foo' },
@@ -73,7 +84,13 @@ async function getTopIn3Hours() {
         return
     }
 
-    console.log("receive topIn3Hours = ", posts)
+    // posts = [{}, {}, {}, ... , {}]
+
+    for (var i = 0; i < posts.length; i++) {
+        console.log(posts[i])
+    }
+
+    latestTop.posts = posts
 }
 
 /*-----------------------------------HELPERS---------------------------------------*/

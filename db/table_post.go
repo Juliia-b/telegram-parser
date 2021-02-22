@@ -76,7 +76,7 @@ func (t *TablePost) UpdateMessage(u *UpdateRow) (updateCount int64, err error) {
 // GetMessageWithPeriod returns messages for the selected time period.
 // The list of time intervals is in the structure TimePeriods.
 func (t *TablePost) GetMessageWithPeriod(from int64, to int64, limit int) ([]*Message, error) {
-	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v AND views>1 ORDER BY views DESC, forwards DESC, replies DESC  LIMIT %v;`, t.Name, from, to, limit)
+	var sqlStatement = fmt.Sprintf(`SELECT * FROM %v WHERE date>=%v AND date<=%v AND views>100 ORDER BY views DESC, forwards DESC, replies DESC  LIMIT %v;`, t.Name, from, to, limit)
 
 	rows, err := t.Connection.Query(sqlStatement)
 	if err != nil {

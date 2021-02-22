@@ -145,6 +145,8 @@ func (a *App) trackingStatistics(stopTime *int64) {
 			a.DbCli.InsertMessage(updatedMsg)
 		}
 
+		logrus.Infof("Message with id = '%v' and chat id = '%v' updated with tracking.", updatedMsg.MessageID, updatedMsg.ChatID)
+
 		//	Update the message in the message queue
 		//  1. remove the message from the parser queue
 		update.Ack(false)
