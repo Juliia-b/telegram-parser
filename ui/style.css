@@ -5,28 +5,53 @@ body {
     background-color: white;
 }
 
+i {
+    font-family: fontawesome !important;
+}
+
+.fas {
+    margin-right: 8px;
+    color: #7d7d90 !important;
+    font-size: 16px !important;
+}
+
 .topIn3Hours {
-    background-color: #f8f8f9;
+    width: 25%;
+    position: absolute;
+    background-color: #F7F7F7;
+    top: 35px;
+    margin-left: 73%;
+    margin-top: 1em;
+    border-radius: 4px;
 }
 
 .results {
-    width: 70%;
-    margin: auto;
+    position: absolute;
+    width: 62%;
+    padding-left: 10%;
+    top: 35px;
 }
 
-.no-data {
+.result {
+    padding-bottom: 16px;
+    padding-top: 10px;
+}
+
+.error {
     margin-left: 16.6%;
 }
 
 .btn-group {
-    margin-left: 20%;
+    background-color: aliceblue;
+    padding-left: 10%;
+    margin-right: 20%;
 }
 
 .btn-group button {
     background-color: white;
     border: 1px solid #7d7d90;
     color: #7d7d90;
-    padding: 10px 24px;
+    padding: 10px 22px;
     cursor: pointer;
     float: left;
 }
@@ -47,15 +72,36 @@ button {
 }
 
 .title {
+    font-weight: bold !important;
     margin-top: 10px;
+}
+
+.title a {
+    color: black !important;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: #ad6c8f !important;
 }
 
 .content {
     margin-top: 10px;
+    overflow-wrap: break-word;
+}
+
+.with-max-line-count {
+    /* cropping content if it is longer than 5 lines   */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    /*-webkit-line-clamp: 3;*/
+    -webkit-box-orient: vertical;
 }
 
 .interactions-block {
     margin-top: 10px;
+    font-size: 14px !important;
 }
 
 .interactions {
@@ -63,5 +109,45 @@ button {
 }
 
 .interactions.left {
-    width: 80%;
+    width: 32%;
 }
+
+.interactions.arrow {
+    margin-left: 15%;
+    padding-left: 2%;
+    padding-right: 2% !important;
+    cursor: pointer;
+}
+
+.interactions.arrow .fas {
+    font-size: 21px !important;
+    cursor: pointer !important;
+}
+
+.interactions.date {
+    color: #6f6c6c;
+    margin-left: 31%;
+}
+
+.box {
+    border: 1px solid #c1c1c1;
+    height: 26px;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.box-element {
+    padding-top: 3px;
+    padding-left: 6px;
+    width: 80px;
+    display: inline-block;
+}
+
+.top-post {
+    cursor: pointer;
+    margin: 10px;
+    margin-bottom: 22px;
+    overflow-wrap: break-word;
+}
+
+

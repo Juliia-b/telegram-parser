@@ -11,6 +11,7 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@200&display=swap');
+        @import url("https://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css");
     </style>
 </head>
 
@@ -28,54 +29,51 @@
 
 <br><br>
 
-<div class="no-data"></div>
+<div class="error"></div>
 
-<div id="topIn3Hours" class="results topIn3Hours">
-    <div v-for="(post, index) in posts" id="result">
-        {{index}} + 1
-        <div class="title">
-            {{post.chattitle}}:
-        </div>
-        <div class="content">
+<div id="topIn3Hours" class="topIn3Hours">
+    <div v-for="(post, index) in posts" id="" class="top-post">
+
+        <div class="with-max-line-count" style="webkitLineClamp:3;" onclick="openCloseTopText(this)">
             {{post.content}}
+            <br>
+            <a v-bind:href="post.link" target="_blank">{{ post.chattitle }}</a>
         </div>
-        <hr>
-        <div class="interactions-block">
-            <div class="interactions left">
-                Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
-            </div>
-            <div class="interactions right">{{post.date}}</div>
-        </div>
-        <hr>
+
     </div>
 </div>
 
-
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
-
-
 <div id="results" class="results">
-    <div v-for="(post, index) in posts" id="result">
-        {{index}} + 1
+    <div v-for="(post, index) in posts" id="result" class="result">
+
         <div class="title">
-            {{post.chattitle}}:
+            <a v-bind:href="post.link" target="_blank">{{ post.chattitle }}</a>
         </div>
-        <div class="content">
+
+        <div class="content with-max-line-count" style="webkitLineClamp:3;">
             {{post.content}}
         </div>
-        <hr>
         <div class="interactions-block">
             <div class="interactions left">
-                Views:{{post.views}}; Forwards:{{post.forwards}}; Replies:{{post.replies}}
+
+                <div class="box">
+                    <div class="box-element">
+                        <i title="Post views" class="fas fa-eye"></i>{{post.views}}
+                    </div>
+
+                    <div class="box-element">
+                        <i title="Post forwards" class="fas fa-share"></i>{{post.forwards}}
+                    </div>
+
+                    <div class="box-element">
+                        <i title="Post replies" class="fas fa-comments"></i>{{post.replies}}
+                    </div>
+                </div>
             </div>
-            <div class="interactions right">{{post.date}}</div>
+            <div class="interactions arrow" onclick="changeArrow(this);openCloseText(this)"><i
+                        class="fas fa-caret-down"></i></div>
+            <div class="interactions date">{{post.date}}</div>
         </div>
-        <hr>
     </div>
 </div>
 
