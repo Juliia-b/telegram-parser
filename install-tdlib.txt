@@ -1,0 +1,31 @@
+tdlib installing
+
+For Ubuntu 20:
+```
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install make git zlib1g-dev libssl-dev gperf php-cli cmake g++
+$ git clone https://github.com/tdlib/td.git
+$ cd td
+$ rm -rf build
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=/usr/lib/ssl ..
+$ cmake --build . --target install
+$ cd ..
+$ cd ..
+$ ls -l /usr/local
+```
+
+Полное руководство:
+
+см. https://tdlib.github.io/td/build.html?language=Go
+
+при возникновении ошибки "fatal error: td/telegram/td_json_client.h: No such file or directory"
+см. https://github.com/tdlib/td/issues/257
+
+"Error was on build step with openssl lib
+ After fix (debian):
+
+ cmake -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=/usr/lib/ssl ..
+ "
