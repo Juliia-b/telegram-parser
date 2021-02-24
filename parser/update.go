@@ -11,7 +11,7 @@ import (
 
 // GetUpdates starts reading messages from the telegram raw updates channel.
 func (a *App) GetUpdates() {
-	var COUNT_REVIEW_GOROUTINES = 100
+	var COUNT_REVIEW_GOROUTINES = 10 // TODO в продакшене заменить на большее число (100)
 	var UPDATES_CHANNEL_CAPACITY = 100000
 
 	// rawUpdates gets all updates coming from tdlib

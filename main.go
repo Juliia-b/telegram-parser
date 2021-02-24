@@ -39,7 +39,7 @@ func main() {
 	go app.GetUpdates()
 
 	// Run tracking statistics
-	app.StartTrackingStatistics(50)
+	app.StartTrackingStatistics(10) // TODO в продакшене заменить на большее число
 
 	s := server.Init(dbClient)
 
