@@ -9,6 +9,8 @@ import (
 	"telegram-parser/db"
 )
 
+// TODO найти функцию, чтобы очередь не удалялась при выключении системы или отсутствии consumer'ов
+
 /*---------------------------------STRUCTURES----------------------------------------*/
 
 type Rabbit struct {
@@ -90,6 +92,7 @@ func (r *Rabbit) Consume() <-chan amqp.Delivery {
 		nil,                 // args
 	)
 
+	// TODO FATAL!!!!
 	if err != nil {
 		logrus.Fatal(err)
 	}
