@@ -43,7 +43,7 @@ async function getBestInPeriod(btnEl, period) {
 
     // trying to get the best posts from server
     try {
-        const res = await axios.get(`http://localhost:8000/best?period=${period}`)
+        const res = await axios.get(`http://localhost:8080/best?period=${period}`)
         posts = res.data
     } catch (e) {
         errorEl.innerText = e
@@ -78,7 +78,7 @@ async function getTopIn3Hours() {
     let posts;
 
     try {
-        const res = await axios.get(`http://localhost:8000/best/3hour`)
+        const res = await axios.get(`http://localhost:8080/best/3hour`)
         posts = res.data
     } catch (e) {
         console.log("error when get bestIn3hour with err : ", e)
