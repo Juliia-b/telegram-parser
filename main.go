@@ -3,12 +3,12 @@ package main
 import (
 	"github.com/Arman92/go-tdlib"
 	"github.com/sirupsen/logrus"
-	"sync"
 	"telegram-parser/db"
 	"telegram-parser/helpers"
 	"telegram-parser/mq"
 	"telegram-parser/parser"
 	"telegram-parser/server"
+	"time"
 )
 
 func main() {
@@ -23,17 +23,14 @@ func main() {
 	tdlib.SetFilePath("./errors.txt")
 
 	app := parser.AppInstance(dbClient, mqClient)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	app.TelegramAuthorization(&wg)
-	wg.Wait()
+	app.TelegramAuthorization()
 
 	// Необходимо, чтобы tdlib знал о чатах, поэтому сначала нужно пройтись по всем чатам
-	_, err := app.Telegram.GetChatList(5000)
-	if err != nil {
+	if _, err := app.Telegram.GetChatList(1000000); err != nil {
 		logrus.Panicf("Fail to get chat list with error = '%v'.", err.Error())
 	}
+
+	time.Sleep(10 * time.Second)
 
 	// Run handling updates from Telegram
 	go app.GetUpdates()
