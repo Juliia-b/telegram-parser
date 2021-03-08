@@ -82,9 +82,17 @@ func (a *App) trackingStatistics(rabbitQueue <-chan amqp.Delivery, stopTime *int
 				continue
 			}
 
+			if strings.Contains(err.Error(), "msg: CHANNEL_PRIVATE") {
+				logrus.Errorf("Message with id = '%v' and chat id = '%v' has error `CHANNEL_PRIVATE`. Message will be deleted from queue.", previousMsg.MessageID, previousMsg.ChatID)
+				//	TODO возможно стоит удалить и из базы
+				update.Ack(false)
+
+				continue
+			}
+
 			logrus.Errorf("Failed to receive the message from telegram with message id = '%v' and chat id = '%v' with error = `%#v`. Message passed to message queue.", previousMsg.MessageID, previousMsg.ChatID, err.Error())
 
-			// could not get new message information. The message will be returned to the queue
+			// failed to get message information. The message will be returned to the queue
 			update.Ack(false)
 			publishMessage(mqCli, previousMsg)
 			continue
