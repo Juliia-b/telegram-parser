@@ -12,6 +12,7 @@ type env struct {
 }
 
 var envs = []env{
+	{"PORT", "The port that the parser will listen to."},
 	{"RABBITPORT", "Port on which rabbitMQ is listened."},
 	{"PGHOST", "Host on which postgreSQL is listened."}, // "localhost"
 	{"PGPORT", "Port on which postgreSQL is listened."}, // "5432"
@@ -28,7 +29,7 @@ func CheckEnv() {
 	for _, env := range envs {
 		e := os.Getenv(env.name)
 		if e == "" {
-			logrus.Fatalf("Missing global variable %v. Usage : %v\n ", env.name, env.comment)
+			logrus.Fatalf("Missing global variable %v. Usage: %v\n ", env.name, env.comment)
 		}
 	}
 }

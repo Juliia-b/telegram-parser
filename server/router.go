@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 	"telegram-parser/db"
 	"time"
 )
@@ -27,7 +28,7 @@ func Init(dbCli db.DB) *Server {
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "127.0.0.1:8080",
+		Addr:         "0.0.0.0:" + os.Getenv("PORT"),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
