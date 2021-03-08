@@ -1,6 +1,7 @@
 let results;
 let latestTop;
 let errorEl;
+let host = document.location.host;
 
 // onload initializes object Vue.js, calls function getBestInPeriod with period "today"
 window.onload = function () {
@@ -43,7 +44,7 @@ async function getBestInPeriod(btnEl, period) {
 
     // trying to get the best posts from server
     try {
-        const res = await axios.get(`http://localhost:8080/best?period=${period}`)
+        const res = await axios.get(`http://${host}/best?period=${period}`)
         posts = res.data
     } catch (e) {
         errorEl.innerText = e
@@ -78,7 +79,7 @@ async function getTopIn3Hours() {
     let posts;
 
     try {
-        const res = await axios.get(`http://localhost:8080/best/3hour`)
+        const res = await axios.get(`http://${host}/best/3hour`)
         posts = res.data
     } catch (e) {
         console.log("error when get bestIn3hour with err : ", e)
@@ -156,7 +157,7 @@ function timeConverter(UNIX_timestamp) {
 /*----------------------------------WEBSOCKET---------------------------------------*/
 
 function startWebsocket() {
-    var ws = new WebSocket("ws://" + document.location.host + "/ws")
+    var ws = new WebSocket("ws://" + host + "/ws")
 
     ws.onopen = function () {
         console.log("Соединение установлено.")
