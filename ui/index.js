@@ -2,6 +2,7 @@ let results;
 let latestTop;
 let errorEl;
 let host = document.location.host;
+let origin = document.location.origin; // "https://translate.google.com"
 
 // onload initializes object Vue.js, calls function getBestInPeriod with period "today"
 window.onload = function () {
@@ -44,7 +45,7 @@ async function getBestInPeriod(btnEl, period) {
 
     // trying to get the best posts from server
     try {
-        const res = await axios.get(`http://${host}/best?period=${period}`)
+        const res = await axios.get(`${origin}/best?period=${period}`)
         posts = res.data
     } catch (e) {
         errorEl.innerText = e
@@ -79,7 +80,7 @@ async function getTopIn3Hours() {
     let posts;
 
     try {
-        const res = await axios.get(`http://${host}/best/3hour`)
+        const res = await axios.get(`${origin}/best/3hour`)
         posts = res.data
     } catch (e) {
         console.log("error when get bestIn3hour with err : ", e)
