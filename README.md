@@ -1,21 +1,22 @@
 Telegram-parser
 ----
-The Telegram parser find most popular messages from Telegram and provide sorted lists of them via API and UI. 
+The Telegram parser finds the most popular messages in the user's Telegram feed and provide sorted lists of them via API and UI. 
 
-UI is available on port 8000.
+![](examples/png/all-time.png)
 
 ## Prerequisites and launch
 1. Install and start database (PostgreSQL)
 2. Run RabbitMQ in docker container
+3. Install and build tdlib following the [instructions](install-tdlib.txt)
 3. Set environment variables:
 
-   - RABBITPORT - Port on which rabbitMQ is listened.
+   - PORT - The port that the parser will listen to.
    
+   - RABBITPORT - Port on which rabbitMQ is listened.
    - PGHOST - Host on which postgreSQL is listened.
    - PGPORT - Port on which postgreSQL is listened.
    - PGUSER - PostgreSQL user name.
    - PGPASSWORD - Password to access postgreSQL.
-   - PGDBNAME - PostgreSQL database name.            DEPRECATE
    - TGTELNUMBER - Phone number required to connect to the telegram client.
    - TGAPIID - Application identifier for Telegram API access, which can be obtained at https://my.telegram.org.
    - TGAPIHASH - Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org.
@@ -32,16 +33,17 @@ UI is available on port 8000.
 
 
 ## UI
-UI is available on port 8000
+UI is available on port {env.PORT}
 
-![](examples/png/this_month.png)
+![](examples/png/today.png)
+
 > Example of using UI
 
 
 ## API
-Get the best posts for a period:
+GET `http://localhost:{PORT}/best?period=${period}`
 
-`http://localhost:8000/best?period=${period}`
+Returns the most popular posts for a period:
 
 Available time periods:
 
@@ -52,3 +54,7 @@ Available time periods:
 - lastweek
 - thismonth
 - whole (Denotes the entire period from 1970-01-01T00: 00: 00Z to the present)
+
+GET `http://localhost:{PORT}/best/3hour` 
+
+Returns the most popular posts in the last 3 hours

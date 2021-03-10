@@ -13,30 +13,12 @@ type PostgresClient struct {
 	DbName     string
 
 	// tables in database
-	*TableClient
 	*TablePost
-	//*TableTop3Hour  // DEPRECATE
 }
-
-//// Tables contains list of available tables in "tg_parser" database.
-//type Tables struct {
-//	Post     *TablePost
-//	Client   *TableClient
-//	Top3Hour *TableTop3Hour
-//}
 
 type TablePost struct {
 	*Table
 }
-
-type TableClient struct {
-	*Table
-}
-
-// DEPRECATE
-//type TableTop3Hour struct {
-//	*Table
-//}
 
 // Table contains a list of available tables for the database.
 type Table struct {
@@ -72,13 +54,6 @@ type UpdateRow struct {
 	NewLink      string
 }
 
-// Client structure compatible with table "client" schema.
-// Used to create, read and update row.
-type Client struct {
-	ID     int    // auto increment
-	Cookie string // the unix time of the first visit of the user to the site is unique as string
-}
-
 /*-----------------------------------HELPERS-----------------------------------------*/
 
 // NewMessage returns a structure compatible with the database schema.
@@ -111,23 +86,6 @@ func getPostTableStruct(dbConn *sql.DB) *TablePost {
 	}}
 }
 
-// getClientTableStruct returns the filled structure TableClient.
-func getClientTableStruct(dbConn *sql.DB) *TableClient {
-	return &TableClient{&Table{
-		Name:       "client",
-		Connection: dbConn,
-	}}
-}
-
-// DEPRECATE
-// getTop3HourTableStruct returns the filled structure TableTop3Hour.
-//func getTop3HourTableStruct(dbCOnn *sql.DB) *TableTop3Hour {
-//	return &TableTop3Hour{&Table{
-//		Name:       "top_3_hour",
-//		Connection: dbCOnn,
-//	}}
-//}
-
 /*----------------------------------DB STRUCT----------------------------------------*/
 
 /*
@@ -136,15 +94,7 @@ DATABASE: tg_parser
 
 TABLES:
 
-1. client {
-     id          SERIAL   NOT NULL  - auto increment user id
-     cookie      text     NOT NULL  - user cookie
-
-     PRIMARY KEY(id)
-     UNIQUE(cookie)
-}
-
-2. post {                   in last tg_parser
+1. post {
      message_id  bigint    NOT NULL  -
      chat_id     bigint    NOT NULL  -
      chat_title  text      NOT NULL  -
@@ -161,25 +111,6 @@ TABLES:
                                     уникальными.
 
      // deprecate PRIMARY KEY(message_id, chat_id)
-}
-
-// DEPRECATE
-maximum number of fields in table "top_3_hour" = 30
-3. top_3_hour {
-     message_id  bigint    NOT NULL  -
-     chat_id     bigint    NOT NULL  -
-     chat_title  text      NOT NULL  -
-     content     text      NOT NULL  -
-     date        bigint    NOT NULL  -
-     views       integer   NOT NULL  -
-     forwards    integer   NOT NULL  -
-     replies     integer   NOT NULL  -
-     link        text      NOT NULL  -
-
-     UNIQUE (message_id, chat_id) - Такое ограничение указывает,
-                                    что сочетание значений перечисленных столбцов должно быть уникально во  всей таблице,
-                                    тогда как значения каждого столбца по отдельности не должны быть (и обычно не будут)
-                                    уникальными.
 }
 
 */

@@ -183,7 +183,6 @@ func isMsgExpired(message *db.Message, stopTime *int64) (expired bool) {
 	return false
 }
 
-// TODO возможно не нужно использовать для этого отдельную функцию (использовать чистый код на месте)
 // publishMessage
 func publishMessage(mqCli *mq.Rabbit, msg *db.Message) {
 	err := mqCli.Publish(msg)

@@ -7,12 +7,6 @@ import (
 	"sync"
 )
 
-// TODO
-// разрешить проблему при повторном соединении (?) :
-// repeated read on failed websocket connection
-// home/julia/go/pkg/mod/github.com/gorilla/websocket@v1.4.2/conn.go:1001 (0xcf7506)
-// (*Conn).NextReader: panic("repeated read on failed websocket connection")
-
 /*---------------------------------STRUCTURES----------------------------------------*/
 
 // ws contains all valid websocket connections.
@@ -76,19 +70,3 @@ func (w *ws) delete(wsConn *websocket.Conn) {
 	delete(w.connections, wsConn)
 	w.rwMutex.Unlock()
 }
-
-//
-
-// DEPRECATE
-// getVal returns a websocket connection to the user by his cookie.
-//func (w *ws) getVal(cookie string) (connection *websocket.Conn) {
-//	w.rwMutex.RLock()
-//	connection, ok := w.connections[cookie]
-//	if !ok {
-//		// TODO придумать что делать с отсутствием куки
-//		logrus.Fatal("DOES NOT HAVE COOKIE")
-//	}
-//	w.rwMutex.RUnlock()
-//
-//	return connection
-//}

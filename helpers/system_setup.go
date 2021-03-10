@@ -14,11 +14,10 @@ type env struct {
 var envs = []env{
 	{"PORT", "The port that the parser will listen to."},
 	{"RABBITPORT", "Port on which rabbitMQ is listened."},
-	{"PGHOST", "Host on which postgreSQL is listened."}, // "localhost"
-	{"PGPORT", "Port on which postgreSQL is listened."}, // "5432"
-	{"PGUSER", "PostgreSQL user name."},                 // "postgres"
-	{"PGPASSWORD", "Password to access postgreSQL."},    // ***
-	//{"PGDBNAME", "PostgreSQL database name."},           // "portgres" DEPRECATE
+	{"PGHOST", "Host on which postgreSQL is listened."},
+	{"PGPORT", "Port on which postgreSQL is listened."},
+	{"PGUSER", "PostgreSQL user name."},
+	{"PGPASSWORD", "Password to access postgreSQL."},
 	{"TGTELNUMBER", "Phone number required to connect to the telegram client."},
 	{"TGAPIID", "Application identifier for Telegram API access, which can be obtained at https://my.telegram.org   --- must be non-empty.."},
 	{"TGAPIHASH", "Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org  --- must be non-empty.."},

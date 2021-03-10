@@ -9,8 +9,6 @@ import (
 	"telegram-parser/db"
 )
 
-// TODO найти функцию, чтобы очередь не удалялась при выключении системы или отсутствии consumer'ов
-
 /*---------------------------------STRUCTURES----------------------------------------*/
 
 type Rabbit struct {
@@ -34,12 +32,12 @@ func RabbitInit() *Rabbit {
 	}
 
 	updatesQ, err := ch.QueueDeclare(
-		"updates", // name
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
+		"updates",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		logrus.Fatal(err)
@@ -68,10 +66,10 @@ func (r *Rabbit) Publish(msg *db.Message) error {
 	}
 
 	err = r.Channel.Publish(
-		"",                  // exchange
-		r.UpdatesQueue.Name, // routing key
-		false,               // mandatory
-		false,               // immediate
+		"",
+		r.UpdatesQueue.Name,
+		false,
+		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        body,
@@ -83,16 +81,15 @@ func (r *Rabbit) Publish(msg *db.Message) error {
 // Consume immediately starts delivering queued messages
 func (r *Rabbit) Consume() <-chan amqp.Delivery {
 	msgs, err := r.Channel.Consume(
-		r.UpdatesQueue.Name, // queue
-		"",                  // consumer
-		false,               // auto-ack
-		false,               // exclusive
-		false,               // no-local
-		false,               // no-wait
-		nil,                 // args
+		r.UpdatesQueue.Name,
+		"",
+		false,
+		false,
+		false,
+		false,
+		nil,
 	)
 
-	// TODO FATAL!!!!
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -105,11 +102,7 @@ func (r *Rabbit) Consume() <-chan amqp.Delivery {
 // marshalMessage returns the JSON encoding of *db.Message.
 func marshalMessage(msg *db.Message) (result []byte, err error) {
 	bytes, err := json.Marshal(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes, nil
+	return bytes, err
 }
 
 // UnmarshalRabbitBody  parses the JSON-encoded data into *db.Message.
@@ -120,5 +113,5 @@ func UnmarshalRabbitBody(bytes []byte) (message *db.Message, err error) {
 		return nil, err
 	}
 
-	return &msg, err
+	return &msg, nil
 }

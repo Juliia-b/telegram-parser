@@ -2,7 +2,7 @@ let results;
 let latestTop;
 let errorEl;
 let host = document.location.host;
-let origin = document.location.origin; // "https://translate.google.com"
+let origin = document.location.origin;
 
 // onload initializes object Vue.js, calls function getBestInPeriod with period "today"
 window.onload = function () {

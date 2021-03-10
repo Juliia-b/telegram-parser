@@ -11,7 +11,7 @@ import (
 
 // GetUpdates starts reading messages from the telegram raw updates channel.
 func (a *App) GetUpdates() {
-	var COUNT_REVIEW_GOROUTINES = 10 // TODO в продакшене заменить на большее число (100)
+	var COUNT_REVIEW_GOROUTINES = 10
 	var UPDATES_CHANNEL_CAPACITY = 100000
 
 	// rawUpdates gets all updates coming from tdlib
@@ -83,8 +83,6 @@ func (a *App) messageReview(rawUpdates <-chan tdlib.UpdateMsg) {
 		logrus.Infof("Сообщение с id %v передано в rabbit\n", m.MessageID)
 	}
 }
-
-// extra
 
 /*GetChatList Returns an ordered list of chats in a chat list. Chats are sorted by the pair (chat.position.order, chat.id) in descending order. @param limit The maximum number of chats to be returned. It is possible that fewer chats than the limit are returned even if the end of the list is not reached
  */
