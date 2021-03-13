@@ -12,14 +12,7 @@ WORKDIR /tmp/parser
 
 ADD . .
 
-RUN apt-get install make
-RUN apt-get install git
-RUN apt-get install -y zlib1g-dev
-RUN apt-get install -y libssl-dev
-RUN apt-get install gperf
-RUN apt-get install -y php-cli
-RUN apt-get install -y cmake
-RUN apt-get install -y g++
+RUN apt-get install make git zlib1g-dev libssl-dev gperf php-cli cmake g++ -y
 RUN git clone https://github.com/tdlib/td.git
 RUN mkdir td/build
 RUN cd td/build && cmake -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=/usr/lib/ssl ..
